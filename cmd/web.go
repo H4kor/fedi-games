@@ -11,6 +11,9 @@ import (
 
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
+	"rerere.org/fedi-games/games"
+	tictactoe "rerere.org/fedi-games/games/tic-tac-toe"
+	"rerere.org/fedi-games/internal/html"
 )
 
 type WebfingerResponse struct {
@@ -51,8 +54,8 @@ func config() Config {
 	}
 }
 
-var games = map[string]interface{}{
-	"tic-tac-toe": 1,
+var gamesMap = map[string]games.Game{
+	"tic-tac-toe": tictactoe.NewTicTacToeGame(),
 }
 
 func writeJson(w http.ResponseWriter, data interface{}) error {
@@ -85,7 +88,7 @@ func webfingerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, ok := games[req_name]
+	_, ok := gamesMap[req_name]
 	if !ok {
 		println("error: unknown game")
 		w.WriteHeader(http.StatusNotFound)
@@ -133,6 +136,14 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func inboxHandler(w http.ResponseWriter, r *http.Request) {
+	gameName := r.PathValue("game")
+
+	game, ok := gamesMap[gameName]
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		slog.Error("Couldn't read body in inbox")
@@ -151,15 +162,69 @@ func inboxHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		return vocab.OnObject(act.Object, func(o *vocab.Object) error {
-			plain := getTextFromHtml(o.Content.String())
+			slog.Info("object retrieved", "object", o)
+			plain := html.GetTextFromHtml(o.Content.String())
+			recipients := o.Recipients()
+			sender := o.AttributedTo.GetLink().String()
+			participants := []string{}
+			for _, r := range recipients {
+				participants = append(participants, r.GetLink().String())
+			}
+
+			var replyTo *string
+			if o.InReplyTo != nil {
+				r := o.InReplyTo.GetLink().String()
+				replyTo = &r
+			}
+
+			gameMsg := games.GameMsg{
+				Id:      o.ID.String(),
+				From:    sender,
+				To:      participants,
+				Msg:     plain,
+				ReplyTo: replyTo,
+			}
 
 			slog.Info("Content of object", "content", o.Content.String(), "plain", plain)
+			slog.Info("Game Message", "msg", gameMsg)
+
+			handleGameStep(game, gameMsg)
+
+			slog.Info("Done")
+
 			return nil
 		})
 	})
 	if err != nil {
 		slog.Error("Error on activity", "err", err)
 	}
+}
+
+func handleGameStep(game games.Game, msg games.GameMsg) {
+	ret, err := game.OnMsg(msg)
+	if err != nil {
+		slog.Error("Error on Game", "err", err)
+	}
+
+	create := vocab.CreateNew("TODO", vocab.Note{
+		ID:        "TODO",
+		Type:      "Note",
+		InReplyTo: vocab.ID(msg.Id),
+		To: vocab.ItemCollection{
+			vocab.ID(msg.From),
+		},
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(ret.Msg)},
+		},
+	})
+
+	data, err := jsonld.WithContext(
+		jsonld.IRI(vocab.ActivityBaseURI),
+	).Marshal(create)
+	if err != nil {
+		slog.Error("Error Marshalling", "err", err)
+	}
+	slog.Info("Response", "response", create, "data", data)
 }
 
 func main() {

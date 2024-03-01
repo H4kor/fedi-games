@@ -1,4 +1,4 @@
-package main
+package html
 
 import (
 	"strings"
@@ -6,7 +6,7 @@ import (
 	"golang.org/x/net/html"
 )
 
-func getTextFromHtml(htmlStr string) string {
+func GetTextFromHtml(htmlStr string) string {
 	plain := ""
 	domDocTest := html.NewTokenizer(strings.NewReader(htmlStr))
 	previousStartTokenTest := domDocTest.Token()

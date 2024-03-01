@@ -1,0 +1,61 @@
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        {
+            "ostatus": "http://ostatus.org#",
+            "atomUri": "ostatus:atomUri",
+            "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+            "conversation": "ostatus:conversation",
+            "sensitive": "as:sensitive",
+            "toot": "http://joinmastodon.org/ns#",
+            "votersCount": "toot:votersCount"
+        }
+    ],
+    "id": "https://chaos.social/users/h4kor/statuses/112020339426449902/activity",
+    "type": "Create",
+    "actor": "https://chaos.social/users/h4kor",
+    "published": "2024-03-01T12:05:30Z",
+    "to": [
+        "https://games.rerere.org/games/tic-tac-toe"
+    ],
+    "cc": [],
+    "object": {
+        "id": "https://chaos.social/users/h4kor/statuses/112020339426449902",
+        "type": "Note",
+        "summary": null,
+        "inReplyTo": "https://chaos.social/users/h4kor/statuses/112019590465911852",
+        "published": "2024-03-01T12:05:30Z",
+        "url": "https://chaos.social/@h4kor/112020339426449902",
+        "attributedTo": "https://chaos.social/users/h4kor",
+        "to": [
+            "https://games.rerere.org/games/tic-tac-toe"
+        ],
+        "cc": [],
+        "sensitive": false,
+        "atomUri": "https://chaos.social/users/h4kor/statuses/112020339426449902",
+        "inReplyToAtomUri": "https://chaos.social/users/h4kor/statuses/112019590465911852",
+        "conversation": "tag:chaos.social,2024-03-01:objectId=167062635:objectType=Conversation",
+        "content": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https: //games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> response</p>",
+        "contentMap": {
+            "de": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> response</p>"
+        },
+        "attachment": [],
+        "tag": [
+            {
+                "type": "Mention",
+                "href": "https://games.rerere.org/games/tic-tac-toe",
+                "name": "@tic-tac-toe@games.rerere.org"
+            }
+        ],
+        "replies": {
+            "id": "https://chaos.social/users/h4kor/statuses/112020339426449902/replies",
+            "type": "Collection",
+            "first": {
+                "type": "CollectionPage",
+                "next": "https://chaos.social/users/h4kor/statuses/112020339426449902/replies?only_other_accounts=true&page=true",
+                "partOf": "https://chaos.social/users/h4kor/statuses/112020339426449902/replies",
+                "items": []
+            }
+        }
+    }
+}

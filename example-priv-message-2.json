@@ -1,0 +1,68 @@
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        {
+            "ostatus": "http://ostatus.org#",
+            "atomUri": "ostatus:atomUri",
+            "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+            "conversation": "ostatus:conversation",
+            "sensitive": "as:sensitive",
+            "toot": "http://joinmastodon.org/ns#",
+            "votersCount": "toot:votersCount"
+        }
+    ],
+    "id": "https://chaos.social/users/h4kor/statuses/112011048380997967/activity",
+    "type": "Create",
+    "actor": "https://chaos.social/users/h4kor",
+    "published": "2024-02-28T20:42:39Z",
+    "to": [
+        "https://games.rerere.org/games/tic-tac-toe",
+        "https://mastodon.social/users/h4kor"
+    ],
+    "cc": [],
+    "object": {
+        "id": "https://chaos.social/users/h4kor/statuses/112011048380997967",
+        "type": "Note",
+        "summary": null,
+        "inReplyTo": null,
+        "published": "2024-02-28T20:42:39Z",
+        "url": "https://chaos.social/@h4kor/112011048380997967",
+        "attributedTo": "https://chaos.social/users/h4kor",
+        "to": [
+            "https://games.rerere.org/games/tic-tac-toe",
+            "https://mastodon.social/users/h4kor"
+        ],
+        "cc": [],
+        "sensitive": false,
+        "atomUri": "https://chaos.social/users/h4kor/statuses/112011048380997967",
+        "inReplyToAtomUri": null,
+        "conversation": "tag:chaos.social,2024-02-28:objectId=166761414:objectType=Conversation",
+        "content": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https: //games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@h4kor\" class=\"u-url mention\">@<span>h4kor@mastodon.social</span></a></span> </p><p>Start 5</p>",
+        "contentMap": {
+            "de": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@h4kor\" class=\"u-url mention\">@<span>h4kor@mastodon.social</span></a></span> </p><p>Start 5</p>"
+        },
+        "attachment": [],
+        "tag": [
+            {
+                "type": "Mention",
+                "href": "https://games.rerere.org/games/tic-tac-toe",
+                "name": "@tic-tac-toe@games.rerere.org"
+            },
+            {
+                "type": "Mention",
+                "href": "https://mastodon.social/users/h4kor",
+                "name": "@h4kor@mastodon.social"
+            }
+        ],
+        "replies": {
+            "id": "https://chaos.social/users/h4kor/statuses/112011048380997967/replies",
+            "type": "Collection",
+            "first": {
+                "type": "CollectionPage",
+                "next": "https://chaos.social/users/h4kor/statuses/112011048380997967/replies?only_other_accounts=true&page=true",
+                "partOf": "https://chaos.social/users/h4kor/statuses/112011048380997967/replies",
+                "items": []
+            }
+        }
+    }
+}

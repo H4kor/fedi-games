@@ -8,4 +8,5 @@ require (
 	github.com/go-ap/errors v0.0.0-20231003111023-183eef4b31b7 // indirect
 	github.com/go-ap/jsonld v0.0.0-20221030091449-f2a191312c73 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
+	golang.org/x/net v0.21.0 // indirect
 )

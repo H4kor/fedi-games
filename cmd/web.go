@@ -6,13 +6,16 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
+	"rerere.org/fedi-games/config"
 	"rerere.org/fedi-games/games"
 	tictactoe "rerere.org/fedi-games/games/tic-tac-toe"
+	"rerere.org/fedi-games/internal/acpub"
 	"rerere.org/fedi-games/internal/html"
 )
 
@@ -28,32 +31,6 @@ type WebfingerLink struct {
 	Href string `json:"href"`
 }
 
-type Config struct {
-	Host         string
-	Protocol     string
-	PublicKeyPem string
-}
-
-func (c *Config) FullUrl() string {
-	return c.Protocol + "://" + c.Host
-}
-
-func getEnv(key string, fb string) string {
-	v := os.Getenv(key)
-	if v == "" {
-		return fb
-	}
-	return v
-}
-
-func config() Config {
-	return Config{
-		Host:         getEnv("FEDI_GAMES_HOST", "localhost:4040"),
-		Protocol:     getEnv("FEDI_GAMES_PROTOCOL", "http"),
-		PublicKeyPem: getEnv("FEDI_GAMES_PUBLIC_KEY_PEM", "TBD"),
-	}
-}
-
 var gamesMap = map[string]games.Game{
 	"tic-tac-toe": tictactoe.NewTicTacToeGame(),
 }
@@ -65,7 +42,7 @@ func writeJson(w http.ResponseWriter, data interface{}) error {
 }
 
 func webfingerHandler(w http.ResponseWriter, r *http.Request) {
-	host := config().Host
+	host := config.GetConfig().Host
 
 	resource := r.URL.Query().Get("resource")
 	if !strings.HasPrefix(resource, "acct:") {
@@ -95,6 +72,8 @@ func webfingerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	cfg := config.GetConfig()
+
 	webfinger := WebfingerResponse{
 		Subject: resource,
 
@@ -102,7 +81,7 @@ func webfingerHandler(w http.ResponseWriter, r *http.Request) {
 			{
 				Rel:  "self",
 				Type: "application/activity+json",
-				Href: config().Protocol + "://" + config().Host + "/games/" + req_name,
+				Href: cfg.FullUrl() + "/games/" + req_name,
 			},
 		},
 	}
@@ -115,17 +94,17 @@ func webfingerHandler(w http.ResponseWriter, r *http.Request) {
 func gameHandler(w http.ResponseWriter, r *http.Request) {
 	game := r.PathValue("game")
 
-	config := config()
+	cfg := config.GetConfig()
 
-	actor := vocab.ServiceNew(vocab.IRI(config.FullUrl() + "/games/" + game))
+	actor := vocab.ServiceNew(vocab.IRI(cfg.FullUrl() + "/games/" + game))
 	actor.PreferredUsername = vocab.NaturalLanguageValues{{Value: vocab.Content(game)}}
-	actor.Inbox = vocab.IRI(config.FullUrl() + "/games/" + game + "/inbox")
+	actor.Inbox = vocab.IRI(cfg.FullUrl() + "/games/" + game + "/inbox")
 	// actor.Outbox = vocab.IRI(config.FullUrl() + "/games/" + game + "/outbox")
 	// actor.Followers = vocab.IRI(config.FullUrl() + "/games/" + game + "/followers")
 	actor.PublicKey = vocab.PublicKey{
-		ID:           vocab.ID(config.FullUrl() + "/games/" + game + "/actor#main-key"),
-		Owner:        vocab.IRI(config.FullUrl() + "/games/" + game),
-		PublicKeyPem: config.PublicKeyPem,
+		ID:           vocab.ID(cfg.FullUrl() + "/games/" + game + "#main-key"),
+		Owner:        vocab.IRI(cfg.FullUrl() + "/games/" + game),
+		PublicKeyPem: cfg.PublicKeyPem,
 	}
 	data, _ := jsonld.WithContext(
 		jsonld.IRI(vocab.ActivityBaseURI),
@@ -188,7 +167,7 @@ func inboxHandler(w http.ResponseWriter, r *http.Request) {
 			slog.Info("Content of object", "content", o.Content.String(), "plain", plain)
 			slog.Info("Game Message", "msg", gameMsg)
 
-			handleGameStep(game, gameMsg)
+			go handleGameStep(gameName, game, gameMsg)
 
 			slog.Info("Done")
 
@@ -200,31 +179,40 @@ func inboxHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleGameStep(game games.Game, msg games.GameMsg) {
+func handleGameStep(gameName string, game games.Game, msg games.GameMsg) {
 	ret, err := game.OnMsg(msg)
 	if err != nil {
 		slog.Error("Error on Game", "err", err)
 	}
 
-	create := vocab.CreateNew("TODO", vocab.Note{
-		ID:        "TODO",
-		Type:      "Note",
-		InReplyTo: vocab.ID(msg.Id),
-		To: vocab.ItemCollection{
-			vocab.ID(msg.From),
-		},
+	cfg := config.GetConfig()
+
+	to := vocab.ItemCollection{}
+	for _, t := range ret.To {
+		to = append(to, vocab.ID(t))
+	}
+
+	note := vocab.Note{
+		ID:           vocab.ID(cfg.FullUrl() + "/games/" + gameName + "/" + strconv.FormatInt(time.Now().Unix(), 10)),
+		Type:         "Note",
+		InReplyTo:    vocab.ID(msg.Id),
+		To:           to,
+		Published:    time.Now().UTC(),
+		AttributedTo: vocab.ID(cfg.FullUrl() + "/games/" + gameName),
 		Content: vocab.NaturalLanguageValues{
 			{Value: vocab.Content(ret.Msg)},
 		},
-	})
+	}
 
-	data, err := jsonld.WithContext(
-		jsonld.IRI(vocab.ActivityBaseURI),
-	).Marshal(create)
 	if err != nil {
 		slog.Error("Error Marshalling", "err", err)
 	}
-	slog.Info("Response", "response", create, "data", data)
+
+	err = acpub.SendNote(gameName, note)
+	if err != nil {
+		slog.Error("Error sending message", "err", err)
+	}
+
 }
 
 func main() {

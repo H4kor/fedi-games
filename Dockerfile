@@ -13,7 +13,7 @@ RUN go mod download
 
 COPY . .
 
-RUN GOOS=linux go build -o ./out/fedi-games .
+RUN GOOS=linux go build -o ./out/fedi-games rerere.org/fedi-games/cmd
 
 
 ##

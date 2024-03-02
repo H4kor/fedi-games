@@ -1,7 +1,11 @@
 package games
 
+import "rerere.org/fedi-games/domain/models"
+
 type Game interface {
-	OnMsg(GameMsg) (GameReply, error)
+	OnMsg(*models.GameSession, GameMsg) (GameReply, error)
+	NewState() interface{}
+	Name() string
 }
 
 type GameMsg struct {

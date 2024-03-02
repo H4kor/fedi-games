@@ -4,6 +4,8 @@
 FROM golang:1.22-alpine as build
 
 
+RUN apk add --no-cache --update git gcc g++
+
 WORKDIR /tmp/fedi-games
 
 COPY go.mod .
@@ -13,7 +15,7 @@ RUN go mod download
 
 COPY . .
 
-RUN GOOS=linux go build -o ./out/fedi-games rerere.org/fedi-games/cmd
+RUN CGO_ENABLED=1 GOOS=linux go build -o ./out/fedi-games rerere.org/fedi-games/cmd
 
 
 ##

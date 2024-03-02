@@ -13,6 +13,7 @@ type Config struct {
 	Protocol     string
 	PublicKeyPem string
 	PrivKey      *rsa.PrivateKey
+	DatabaseUrl  string
 }
 
 var cfg *Config
@@ -46,6 +47,7 @@ func GetConfig() Config {
 			Protocol:     getEnv("FEDI_GAMES_PROTOCOL", "http"),
 			PublicKeyPem: string(pubKeyPem),
 			PrivKey:      privKey,
+			DatabaseUrl:  getEnv("DATABASE_URL", "games.db"),
 		}
 	}
 

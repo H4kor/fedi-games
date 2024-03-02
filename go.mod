@@ -13,6 +13,8 @@ require (
 	github.com/go-ap/errors v0.0.0-20231003111023-183eef4b31b7 // indirect
 	github.com/go-fed/httpsig v1.1.0 // indirect
 	github.com/jbowes/httpsig v0.1.0 // indirect
+	github.com/jmoiron/sqlx v1.3.5 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
 	golang.org/x/crypto v0.19.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect

@@ -188,8 +188,12 @@ func handleGameStep(gameName string, game games.Game, msg games.GameMsg) {
 	cfg := config.GetConfig()
 
 	to := vocab.ItemCollection{}
+	mentions := vocab.ItemCollection{}
 	for _, t := range ret.To {
 		to = append(to, vocab.ID(t))
+		mentions = append(mentions, vocab.MentionNew(
+			vocab.ID(t),
+		))
 	}
 
 	note := vocab.Note{
@@ -199,6 +203,7 @@ func handleGameStep(gameName string, game games.Game, msg games.GameMsg) {
 		To:           to,
 		Published:    time.Now().UTC(),
 		AttributedTo: vocab.ID(cfg.FullUrl() + "/games/" + gameName),
+		Tag:          mentions,
 		Content: vocab.NaturalLanguageValues{
 			{Value: vocab.Content(ret.Msg)},
 		},

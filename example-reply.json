@@ -23,7 +23,7 @@
         "id": "https://chaos.social/users/h4kor/statuses/112020339426449902",
         "type": "Note",
         "summary": null,
-        "inReplyTo": "https://chaos.social/users/h4kor/statuses/112019590465911852",
+        "inReplyTo": "https://chaos.social/users/h4kor/statuses/112010987144546422",
         "published": "2024-03-01T12:05:30Z",
         "url": "https://chaos.social/@h4kor/112020339426449902",
         "attributedTo": "https://chaos.social/users/h4kor",
@@ -33,11 +33,11 @@
         "cc": [],
         "sensitive": false,
         "atomUri": "https://chaos.social/users/h4kor/statuses/112020339426449902",
-        "inReplyToAtomUri": "https://chaos.social/users/h4kor/statuses/112019590465911852",
+        "inReplyToAtomUri": "https://chaos.social/users/h4kor/statuses/112010987144546422",
         "conversation": "tag:chaos.social,2024-03-01:objectId=167062635:objectType=Conversation",
-        "content": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https: //games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> response</p>",
+        "content": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https: //games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> 1</p>",
         "contentMap": {
-            "de": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> response</p>"
+            "de": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> 1</p>"
         },
         "attachment": [],
         "tag": [

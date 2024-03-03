@@ -3,7 +3,7 @@ package games
 import "rerere.org/fedi-games/domain/models"
 
 type Game interface {
-	OnMsg(*models.GameSession, GameMsg) (GameReply, error)
+	OnMsg(*models.GameSession, GameMsg) (interface{}, GameReply, error)
 	NewState() interface{}
 	Name() string
 }

@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	vocab "github.com/go-ap/activitypub"
@@ -102,7 +103,7 @@ func InboxHandler(w http.ResponseWriter, r *http.Request) {
 func handleGameStep(sess *models.GameSession, gameName string, game games.Game, msg games.GameMsg) {
 	cfg := config.GetConfig()
 
-	ret, err := game.OnMsg(sess, msg)
+	newState, ret, err := game.OnMsg(sess, msg)
 	to := vocab.ItemCollection{}
 	mentions := vocab.ItemCollection{}
 	msgStr := ""
@@ -136,14 +137,20 @@ func handleGameStep(sess *models.GameSession, gameName string, game games.Game, 
 		},
 	}
 	sess.MessageIds = append(sess.MessageIds, note.ID.String())
+	sess.Data = newState
+	slog.Info("New State", "state", newState)
 
+	err = infra.GetDb().PersistGameSession(sess)
 	if err != nil {
-		slog.Error("Error Marshalling", "err", err)
+		slog.Error("Error persisting session", "err", err)
 	}
 
-	err = acpub.SendNote(gameName, note)
-	if err != nil {
-		slog.Error("Error sending message", "err", err)
+	// don't send notes to other services if in localhost mode
+	if !strings.Contains(cfg.FullUrl(), "localhost") {
+		err = acpub.SendNote(gameName, note)
+		if err != nil {
+			slog.Error("Error sending message", "err", err)
+		}
 	}
 
 }

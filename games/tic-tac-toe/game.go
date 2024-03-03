@@ -15,7 +15,7 @@ func NewTicTacToeGame() games.Game {
 }
 
 type TicTacToeState struct {
-	Fields  []int // 0 = empty, 1 = PlayerA, 2 = Playerb
+	Fields  []int // 0 = empty, 1 = PlayerA, 2 = PlayerB
 	PlayerA string
 	PlayerB string
 }
@@ -38,15 +38,18 @@ func (*TicTacToe) initState(state *TicTacToeState, msg games.GameMsg) error {
 }
 
 // OnMsg implements games.Game.
-func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (games.GameReply, error) {
-	state := session.Data.(TicTacToeState)
+func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (interface{}, games.GameReply, error) {
+	state := session.Data.(*TicTacToeState)
+
+	// init on new game
 	if len(state.Fields) != 9 {
-		err := t.initState(&state, msg)
+		err := t.initState(state, msg)
 		if err != nil {
-			return games.GameReply{}, err
+			return nil, games.GameReply{}, err
 		}
 	}
 
+	// apply message to state
 	parts := strings.Split(msg.Msg, " ")
 	found := 0
 	for _, p := range parts {
@@ -61,10 +64,11 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (games
 		}
 	}
 	if found == 0 {
-		return games.GameReply{}, errors.New("message must include a field number")
+		return nil, games.GameReply{}, errors.New("message must include a field number")
 	}
 	state.Fields[found-1] = 1
 
+	// "print" state to reply
 	m := "Field:\n"
 	for i, f := range state.Fields {
 		if f == 0 {
@@ -80,7 +84,7 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (games
 	}
 	slog.Info("Field message", "msg", m)
 
-	return games.GameReply{
+	return state, games.GameReply{
 		To:  []string{msg.From},
 		Msg: m,
 	}, nil
@@ -113,7 +117,7 @@ func intToEmoji(i int) string {
 
 // NewState implements games.Game.
 func (t *TicTacToe) NewState() interface{} {
-	return TicTacToeState{}
+	return &TicTacToeState{}
 }
 
 // Name implements games.Game.

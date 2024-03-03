@@ -2,6 +2,7 @@ package infra
 
 import (
 	"encoding/json"
+	"log/slog"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
@@ -38,16 +39,16 @@ func NewDatabase() *Database {
 
 	sqlxdb.MustExec(`
 		CREATE TABLE IF NOT EXISTS game_session (
-			id BIGINT PRIMARY KEY,
-			game_name TEXT,
-			state TEXT
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			game_name TEXT NOT NULL,
+			data TEXT
 		);
 	`)
 
 	sqlxdb.MustExec(`
 		CREATE TABLE IF NOT EXISTS game_message (
-			id TEXT PRIMARY KEY,
-			session_id BIGINT,
+			id TEXT PRIMARY KEY NOT NULL,
+			session_id BIGINT NOT NULL,
 			FOREIGN KEY(session_id) REFERENCES game_session(id)
 		);
 	`)
@@ -81,4 +82,41 @@ func (db *Database) GetGameSessionByMsgId(msgId string, gameName string, gameSta
 		Data:     gameState,
 	}, nil
 
+}
+
+func (db *Database) PersistGameSession(sess *models.GameSession) error {
+	data, err := json.Marshal(sess.Data)
+	if err != nil {
+		return err
+	}
+	slog.Info("Persisting data", "data", string(data))
+
+	if sess.Id == 0 {
+		// new session
+		r, err := db.db.Exec("INSERT INTO game_session (game_name, data) VALUES (?, ?)", sess.GameName, string(data))
+		if err != nil {
+			return err
+		}
+
+		id, err := r.LastInsertId()
+		if err != nil {
+			return err
+		}
+		sess.Id = id
+	} else {
+		// update session
+		_, err = db.db.Exec("UPDATE game_session SET data = ? WHERE id = ?", string(data), sess.Id)
+		if err != nil {
+			return err
+		}
+	}
+
+	// persist new messages
+	for _, m := range sess.MessageIds {
+		_, err = db.db.Exec("INSERT INTO game_message (id, session_id) VALUES (?, ?) ON CONFLICT DO NOTHING", m, sess.Id)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

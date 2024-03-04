@@ -15,9 +15,10 @@ func NewTicTacToeGame() games.Game {
 }
 
 type TicTacToeState struct {
-	Fields  []int // 0 = empty, 1 = PlayerA, 2 = PlayerB
-	PlayerA string
-	PlayerB string
+	Fields   []int // 0 = empty, 1 = PlayerA, 2 = PlayerB
+	PlayerA  string
+	PlayerB  string
+	WhosTurn int // 1 = PlayerA, 2 = PlayerB
 }
 
 type TicTacToe struct {
@@ -25,7 +26,7 @@ type TicTacToe struct {
 
 func (*TicTacToe) initState(state *TicTacToeState, msg games.GameMsg) error {
 	if len(msg.To) != 1 {
-		return errors.New("must mention on other player")
+		return errors.New("You must mention exactly other player")
 	}
 	state.Fields = []int{
 		0, 0, 0,
@@ -34,6 +35,7 @@ func (*TicTacToe) initState(state *TicTacToeState, msg games.GameMsg) error {
 	}
 	state.PlayerA = msg.From
 	state.PlayerB = msg.To[0]
+	state.WhosTurn = 1
 	return nil
 }
 
@@ -47,6 +49,14 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 		if err != nil {
 			return nil, games.GameReply{}, err
 		}
+	}
+
+	// check if it's players turn
+	if (state.WhosTurn == 1 && msg.From != state.PlayerA) || (state.WhosTurn == 2 && msg.From != state.PlayerB) {
+		return state, games.GameReply{
+			To:  []string{msg.From},
+			Msg: "It's not your turn",
+		}, nil
 	}
 
 	// apply message to state
@@ -63,13 +73,23 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 			break
 		}
 	}
+	// not a valid selection
 	if found == 0 {
 		return nil, games.GameReply{}, errors.New("message must include a field number")
 	}
-	state.Fields[found-1] = 1
+	// field already used
+	if state.Fields[found-1] != 0 {
+		return state, games.GameReply{
+			To:  []string{msg.From},
+			Msg: "This field is already taken",
+		}, nil
+	}
+
+	state.Fields[found-1] = state.WhosTurn
+	state.WhosTurn = (state.WhosTurn % 2) + 1
 
 	// "print" state to reply
-	m := "Field:\n"
+	m := "Field:<br>"
 	for i, f := range state.Fields {
 		if f == 0 {
 			m += intToEmoji(i + 1)
@@ -79,13 +99,21 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 			m += "🇴"
 		}
 		if (i+1)%3 == 0 {
-			m += "<br>\n"
+			m += "<br>"
 		}
 	}
+	m += "<br>"
+	m += "Its your turn: "
+	if state.WhosTurn == 1 {
+		m += state.PlayerA
+	} else {
+		m += state.PlayerB
+	}
+
 	slog.Info("Field message", "msg", m)
 
 	return state, games.GameReply{
-		To:  []string{msg.From},
+		To:  []string{state.PlayerA, state.PlayerB},
 		Msg: m,
 	}, nil
 }

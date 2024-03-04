@@ -20,6 +20,7 @@ import (
 
 func InboxHandler(w http.ResponseWriter, r *http.Request) {
 	gameName := r.PathValue("game")
+	cfg := config.GetConfig()
 
 	game, ok := config.GameMap[gameName]
 	if !ok {
@@ -51,6 +52,19 @@ func InboxHandler(w http.ResponseWriter, r *http.Request) {
 			sender := o.AttributedTo.GetLink().String()
 			participants := []string{}
 			for _, r := range recipients {
+				// filter out all actors on this server fromt the participants list
+				if strings.Contains(r.GetLink().String(), cfg.Host) {
+					continue
+				}
+				// filter out special @s ( e.g. https://www.w3.org/ns/activitystreams#Public )
+				if strings.Contains(r.GetLink().String(), "https://www.w3.org/ns/activitystreams") {
+					continue
+				}
+				// filter out sender
+				if strings.Contains(r.GetLink().String(), sender) {
+					continue
+				}
+
 				participants = append(participants, r.GetLink().String())
 			}
 

@@ -8,6 +8,7 @@ import (
 
 	"rerere.org/fedi-games/domain/models"
 	"rerere.org/fedi-games/games"
+	"rerere.org/fedi-games/internal/acpub"
 )
 
 func NewTicTacToeGame() games.Game {
@@ -94,20 +95,26 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 		if f == 0 {
 			m += intToEmoji(i + 1)
 		} else if f == 1 {
-			m += "❌"
+			m += "🔵"
 		} else if f == 2 {
-			m += "🇴"
+			m += "🟠"
 		}
 		if (i+1)%3 == 0 {
 			m += "<br>"
 		}
 	}
 	m += "<br>"
+	actorA, _ := acpub.GetActor(state.PlayerA)
+	actorB, _ := acpub.GetActor(state.PlayerB)
+	m += "🔵 " + acpub.ActorToLink(actorA) + "<br>"
+	m += "🟠 " + acpub.ActorToLink(actorB) + "<br>"
+
 	m += "Its your turn: "
+
 	if state.WhosTurn == 1 {
-		m += state.PlayerA
+		m += acpub.ActorToLink(actorA)
 	} else {
-		m += state.PlayerB
+		m += acpub.ActorToLink(actorB)
 	}
 
 	slog.Info("Field message", "msg", m)

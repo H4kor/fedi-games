@@ -43,7 +43,7 @@ func WebfingerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, ok := config.GameMap[req_name]
+	_, ok := GameMap[req_name]
 	if !ok {
 		println("error: unknown game")
 		w.WriteHeader(http.StatusNotFound)

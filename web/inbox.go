@@ -22,7 +22,7 @@ func InboxHandler(w http.ResponseWriter, r *http.Request) {
 	gameName := r.PathValue("game")
 	cfg := config.GetConfig()
 
-	game, ok := config.GameMap[gameName]
+	game, ok := GameMap[gameName]
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -127,7 +127,7 @@ func handleGameStep(sess *models.GameSession, gameName string, game games.Game, 
 		mentions = append(mentions, vocab.MentionNew(
 			vocab.ID(msg.From),
 		))
-		msgStr = err.Error()
+		msgStr = "💥 an error occured."
 	} else {
 		for _, t := range ret.To {
 			to = append(to, vocab.ID(t))

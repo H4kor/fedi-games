@@ -17,7 +17,8 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 	actor := vocab.ServiceNew(vocab.IRI(cfg.FullUrl() + "/games/" + game))
 	actor.PreferredUsername = vocab.NaturalLanguageValues{{Value: vocab.Content(game)}}
 	actor.Inbox = vocab.IRI(cfg.FullUrl() + "/games/" + game + "/inbox")
-	// actor.Outbox = vocab.IRI(config.FullUrl() + "/games/" + game + "/outbox")
+	actor.Following = vocab.IRI(cfg.FullUrl() + "/games/" + game + "/following")
+	actor.Outbox = vocab.IRI(cfg.FullUrl() + "/games/" + game + "/outbox")
 	// actor.Followers = vocab.IRI(config.FullUrl() + "/games/" + game + "/followers")
 	actor.PublicKey = vocab.PublicKey{
 		ID:           vocab.ID(cfg.FullUrl() + "/games/" + game + "#main-key"),
@@ -39,6 +40,9 @@ func main() {
 	mux.HandleFunc("GET /.well-known/webfinger", web.WebfingerHandler)
 	mux.HandleFunc("GET /games/{game}", gameHandler)
 	mux.HandleFunc("POST /games/{game}/inbox", web.InboxHandler)
+	mux.HandleFunc("GET /games/{game}/outbox", web.OutboxHandler)
+	mux.HandleFunc("GET /games/{game}/following", web.FollowingHandler)
+	mux.HandleFunc("GET /games/{game}/followers", web.FollowersHandler)
 
 	println("Starting server on port 4040")
 	err := http.ListenAndServe(":4040", mux)

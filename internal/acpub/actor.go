@@ -3,7 +3,6 @@ package acpub
 import (
 	"bytes"
 	"crypto/rsa"
-	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -15,6 +14,11 @@ import (
 	"github.com/go-fed/httpsig"
 	"rerere.org/fedi-games/config"
 )
+
+func ActorToLink(act vocab.Actor) string {
+	url, _ := url.Parse(act.GetLink().String())
+	return "<a href=\"" + act.GetLink().String() + "\" class=\"u-url mention\">@" + act.PreferredUsername.String() + "@" + url.Host + "</a>"
+}
 
 func GetActor(url string) (vocab.Actor, error) {
 	c := http.Client{}
@@ -67,52 +71,61 @@ func sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Requ
 func SendNote(fromGame string, note vocab.Note) error {
 	cfg := config.GetConfig()
 
-	actor, err := GetActor(note.To[0].GetID().String())
-	if err != nil {
-		slog.Error("Unable to get actor", "err", err)
-		return err
-	}
-	slog.Info("Retrieved Actor", "actor", actor, "inbox", actor.Inbox)
+	for _, to := range note.To {
+		actor, err := GetActor(to.GetID().String())
+		if err != nil {
+			slog.Error("Unable to get actor", "err", err)
+			return err
+		}
+		slog.Info("Retrieved Actor", "actor", actor, "inbox", actor.Inbox)
 
-	create := vocab.CreateNew(vocab.IRI(note.ID.String()+"/activity"), note)
-	create.Actor = note.AttributedTo
-	create.To = note.To
-	data, err := jsonld.WithContext(
-		jsonld.IRI(vocab.ActivityBaseURI),
-	).Marshal(create)
-	if err != nil {
-		return err
-	}
+		create := vocab.CreateNew(vocab.IRI(note.ID.String()+"/activity"), note)
+		create.Actor = note.AttributedTo
+		create.To = note.To
+		create.Published = note.Published
+		data, err := jsonld.WithContext(
+			jsonld.IRI(vocab.ActivityBaseURI),
+			jsonld.Context{
+				jsonld.ContextElement{
+					Term: "toot",
+					IRI:  jsonld.IRI("http://joinmastodon.org/ns#"),
+				},
+			},
+		).Marshal(create)
+		if err != nil {
+			slog.Error("marshalling error", "err", err)
+		}
 
-	actorUrl, err := url.Parse(actor.Inbox.GetID().String())
-	if err != nil {
-		return err
-	}
+		actorUrl, err := url.Parse(actor.Inbox.GetID().String())
+		if err != nil {
+			slog.Error("parse error", "err", err)
+		}
 
-	c := http.Client{}
-	req, _ := http.NewRequest("POST", actor.Inbox.GetID().String(), bytes.NewReader(data))
-	req.Header.Set("Accept", "application/ld+json")
-	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
-	req.Header.Set("Host", actorUrl.Host)
-	err = sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", data, req)
-	if err != nil {
-		slog.Error("Signing error", "err", err)
-	}
-	resp, err := c.Do(req)
+		c := http.Client{}
+		req, _ := http.NewRequest("POST", actor.Inbox.GetID().String(), bytes.NewReader(data))
+		req.Header.Set("Accept", "application/ld+json")
+		req.Header.Set("Date", time.Now().Format(http.TimeFormat))
+		req.Header.Set("Host", actorUrl.Host)
+		err = sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", data, req)
+		if err != nil {
+			slog.Error("Signing error", "err", err)
+		}
+		resp, err := c.Do(req)
 
-	slog.Info("Request", "host", resp.Request.Header)
+		slog.Info("Request", "host", resp.Request.Header)
 
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			slog.Error("Sending error", "err", err)
+		}
 
-	if resp.StatusCode > 299 {
+		if resp.StatusCode > 299 {
+			body, _ := io.ReadAll(resp.Body)
+			slog.Error("Error sending Note", "status", resp.Status, "body", string(body))
+		}
 		body, _ := io.ReadAll(resp.Body)
-		slog.Error("Error sending Note", "status", resp.Status, "body", string(body))
-		return errors.New("error status code " + string(resp.Status))
+		slog.Info("Sent Body", "body", string(data))
+		slog.Info("Retrieved", "status", resp.Status, "body", string(body))
 	}
-	body, _ := io.ReadAll(resp.Body)
-	slog.Info("Sent Body", "body", string(data))
-	slog.Info("Retrieved", "status", resp.Status, "body", string(body))
 	return nil
+
 }

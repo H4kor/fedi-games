@@ -20,6 +20,7 @@ type TicTacToeState struct {
 	PlayerA  string
 	PlayerB  string
 	WhosTurn int // 1 = PlayerA, 2 = PlayerB
+	Ended    bool
 }
 
 type TicTacToe struct {
@@ -37,6 +38,7 @@ func (*TicTacToe) initState(state *TicTacToeState, msg games.GameMsg) error {
 	state.PlayerA = msg.From
 	state.PlayerB = msg.To[0]
 	state.WhosTurn = 1
+	state.Ended = false
 	return nil
 }
 
@@ -44,11 +46,22 @@ func (*TicTacToe) initState(state *TicTacToeState, msg games.GameMsg) error {
 func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (interface{}, games.GameReply, error) {
 	state := session.Data.(*TicTacToeState)
 
+	// game already ended
+	if state.Ended {
+		return state, games.GameReply{
+			To:  []string{msg.From},
+			Msg: "The game already ended",
+		}, nil
+	}
+
 	// init on new game
 	if len(state.Fields) != 9 {
 		err := t.initState(state, msg)
 		if err != nil {
-			return nil, games.GameReply{}, err
+			return state, games.GameReply{
+				To:  []string{msg.From},
+				Msg: err.Error(),
+			}, nil
 		}
 	}
 
@@ -76,7 +89,10 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 	}
 	// not a valid selection
 	if found == 0 {
-		return nil, games.GameReply{}, errors.New("message must include a field number")
+		return state, games.GameReply{
+			To:  []string{msg.From},
+			Msg: "The message must include a field number",
+		}, nil
 	}
 	// field already used
 	if state.Fields[found-1] != 0 {
@@ -109,12 +125,45 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 	m += "🔵 " + acpub.ActorToLink(actorA) + "<br>"
 	m += "🟠 " + acpub.ActorToLink(actorB) + "<br>"
 
-	m += "Its your turn: "
-
-	if state.WhosTurn == 1 {
-		m += acpub.ActorToLink(actorA)
+	// check if someone won
+	combinations := [][]int{
+		{1, 2, 3},
+		{4, 5, 6},
+		{7, 8, 9},
+		{1, 4, 7},
+		{2, 5, 8},
+		{3, 6, 9},
+		{1, 5, 9},
+		{3, 5, 7},
+	}
+	winner := 0
+	for _, c := range combinations {
+		if state.Fields[c[0]-1] == state.Fields[c[1]-1] && state.Fields[c[1]-1] == state.Fields[c[2]-1] {
+			if state.Fields[c[0]-1] != 0 {
+				winner = state.Fields[c[0]-1]
+				break
+			}
+		}
+	}
+	if winner != 0 {
+		// we have a winner!
+		m += "Winner: 🎉🎉🎉 "
+		if winner == 1 {
+			m += acpub.ActorToLink(actorA)
+		} else {
+			m += acpub.ActorToLink(actorB)
+		}
+		m += " 🎉🎉🎉"
+		state.Ended = true
 	} else {
-		m += acpub.ActorToLink(actorB)
+		m += "Its your turn: "
+
+		if state.WhosTurn == 1 {
+			m += acpub.ActorToLink(actorA)
+		} else {
+			m += acpub.ActorToLink(actorB)
+		}
+
 	}
 
 	slog.Info("Field message", "msg", m)

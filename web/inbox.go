@@ -124,16 +124,20 @@ func handleGameStep(sess *models.GameSession, gameName string, game games.Game, 
 	if err != nil {
 		slog.Error("Error on Game", "err", err)
 		to = append(to, vocab.ID(msg.From))
-		mentions = append(mentions, vocab.MentionNew(
+		mention := vocab.MentionNew(
 			vocab.ID(msg.From),
-		))
+		)
+		mention.Href = vocab.ID(msg.From)
+		mentions = append(mentions, mention)
 		msgStr = "💥 an error occured."
 	} else {
 		for _, t := range ret.To {
 			to = append(to, vocab.ID(t))
-			mentions = append(mentions, vocab.MentionNew(
+			mention := vocab.MentionNew(
 				vocab.ID(t),
-			))
+			)
+			mention.Href = vocab.ID(t)
+			mentions = append(mentions, mention)
 			msgStr = ret.Msg
 		}
 	}

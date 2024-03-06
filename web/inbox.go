@@ -5,16 +5,14 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 
 	vocab "github.com/go-ap/activitypub"
 	"rerere.org/fedi-games/config"
 	"rerere.org/fedi-games/domain/models"
 	"rerere.org/fedi-games/games"
 	"rerere.org/fedi-games/infra"
-	"rerere.org/fedi-games/internal/acpub"
+	"rerere.org/fedi-games/internal"
 	"rerere.org/fedi-games/internal/html"
 )
 
@@ -89,7 +87,6 @@ func InboxHandler(w http.ResponseWriter, r *http.Request) {
 					Data:     state,
 				}
 			}
-			sess.MessageIds = append(sess.MessageIds, o.ID.String())
 
 			gameMsg := games.GameMsg{
 				Id:      o.ID.String(),
@@ -102,7 +99,7 @@ func InboxHandler(w http.ResponseWriter, r *http.Request) {
 			slog.Info("Content of object", "content", o.Content.String(), "plain", plain)
 			slog.Info("Game Message", "msg", gameMsg)
 
-			go handleGameStep(sess, gameName, game, gameMsg)
+			go internal.ProcessMsg(sess, game, gameMsg)
 
 			slog.Info("Done")
 
@@ -112,63 +109,4 @@ func InboxHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		slog.Error("Error on activity", "err", err)
 	}
-}
-
-func handleGameStep(sess *models.GameSession, gameName string, game games.Game, msg games.GameMsg) {
-	cfg := config.GetConfig()
-
-	newState, ret, err := game.OnMsg(sess, msg)
-	to := vocab.ItemCollection{}
-	mentions := vocab.ItemCollection{}
-	msgStr := ""
-	if err != nil {
-		slog.Error("Error on Game", "err", err)
-		to = append(to, vocab.ID(msg.From))
-		mention := vocab.MentionNew(
-			vocab.ID(msg.From),
-		)
-		mention.Href = vocab.ID(msg.From)
-		mentions = append(mentions, mention)
-		msgStr = "💥 an error occured."
-	} else {
-		for _, t := range ret.To {
-			to = append(to, vocab.ID(t))
-			mention := vocab.MentionNew(
-				vocab.ID(t),
-			)
-			mention.Href = vocab.ID(t)
-			mentions = append(mentions, mention)
-			msgStr = ret.Msg
-		}
-	}
-
-	note := vocab.Note{
-		ID:           vocab.ID(cfg.FullUrl() + "/games/" + gameName + "/" + strconv.FormatInt(time.Now().Unix(), 10)),
-		Type:         "Note",
-		InReplyTo:    vocab.ID(msg.Id),
-		To:           to,
-		Published:    time.Now().UTC(),
-		AttributedTo: vocab.ID(cfg.FullUrl() + "/games/" + gameName),
-		Tag:          mentions,
-		Content: vocab.NaturalLanguageValues{
-			{Value: vocab.Content(msgStr)},
-		},
-	}
-	sess.MessageIds = append(sess.MessageIds, note.ID.String())
-	sess.Data = newState
-	slog.Info("New State", "state", newState)
-
-	err = infra.GetDb().PersistGameSession(sess)
-	if err != nil {
-		slog.Error("Error persisting session", "err", err)
-	}
-
-	// don't send notes to other services if in localhost mode
-	if !strings.Contains(cfg.FullUrl(), "localhost") {
-		err = acpub.SendNote(gameName, note)
-		if err != nil {
-			slog.Error("Error sending message", "err", err)
-		}
-	}
-
 }

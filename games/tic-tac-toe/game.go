@@ -26,6 +26,16 @@ type TicTacToeState struct {
 type TicTacToe struct {
 }
 
+// Summay implements games.Game.
+func (t *TicTacToe) Summay() string {
+	return `
+Classic game of tic-tac-toe. <br>
+Mention me and a component to start a game.
+Moves are selected by replying with a number between 1 and 9.
+`
+
+}
+
 func (*TicTacToe) initState(state *TicTacToeState, msg games.GameMsg) error {
 	if len(msg.To) != 1 {
 		return errors.New("You must mention exactly other player")
@@ -156,14 +166,26 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 		m += " 🎉🎉🎉"
 		state.Ended = true
 	} else {
-		m += "Its your turn: "
-
-		if state.WhosTurn == 1 {
-			m += acpub.ActorToLink(actorA)
-		} else {
-			m += acpub.ActorToLink(actorB)
+		// check for draw
+		anyFree := false
+		for _, f := range state.Fields {
+			if f == 0 {
+				anyFree = true
+				break
+			}
 		}
+		if !anyFree {
+			m += "It's a draw."
+			state.Ended = true
+		} else {
+			m += "Its your turn: "
 
+			if state.WhosTurn == 1 {
+				m += acpub.ActorToLink(actorA)
+			} else {
+				m += acpub.ActorToLink(actorB)
+			}
+		}
 	}
 
 	slog.Info("Field message", "msg", m)

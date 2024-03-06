@@ -18,6 +18,9 @@ loopDomTest:
 			break loopDomTest // End of the document,  done
 		case tt == html.StartTagToken:
 			previousStartTokenTest = domDocTest.Token()
+			if previousStartTokenTest.Data != "span" {
+				plain += " "
+			}
 		case tt == html.TextToken:
 			if previousStartTokenTest.Data == "script" {
 				continue

@@ -1,0 +1,68 @@
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        {
+            "ostatus": "http://ostatus.org#",
+            "atomUri": "ostatus:atomUri",
+            "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+            "conversation": "ostatus:conversation",
+            "sensitive": "as:sensitive",
+            "toot": "http://joinmastodon.org/ns#",
+            "votersCount": "toot:votersCount"
+        }
+    ],
+    "id": "https://chaos.social/users/h4kor/statuses/112050573043315472/activity",
+    "type": "Create",
+    "actor": "https://chaos.social/users/h4kor",
+    "published": "2024-03-06T20:14:18Z",
+    "to": [
+        "https://games.rerere.org/games/tic-tac-toe",
+        "https://gamerplus.org/users/9niy0yaqfmqwc4hl"
+    ],
+    "cc": [],
+    "object": {
+        "id": "https://chaos.social/users/h4kor/statuses/112050573043315472",
+        "type": "Note",
+        "summary": null,
+        "inReplyTo": null,
+        "published": "2024-03-06T20:14:18Z",
+        "url": "https://chaos.social/@h4kor/112050573043315472",
+        "attributedTo": "https://chaos.social/users/h4kor",
+        "to": [
+            "https://games.rerere.org/games/tic-tac-toe",
+            "https://gamerplus.org/users/9niy0yaqfmqwc4hl"
+        ],
+        "cc": [],
+        "sensitive": false,
+        "atomUri": "https://chaos.social/users/h4kor/statuses/112050573043315472",
+        "inReplyToAtomUri": null,
+        "conversation": "tag:chaos.social,2024-03-06:objectId=168226694:objectType=Conversation",
+        "content": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https: //games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://gamerplus.org/@h4kor\" class=\"u-url mention\">@<span>h4kor@gamerplus.org</span></a></span> 5</p><p>just a ProtoType :D</p>",
+        "contentMap": {
+            "de": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://gamerplus.org/@h4kor\" class=\"u-url mention\">@<span>h4kor@gamerplus.org</span></a></span> 5</p><p>just a ProtoType :D</p>"
+        },
+        "attachment": [],
+        "tag": [
+            {
+                "type": "Mention",
+                "href": "https://games.rerere.org/games/tic-tac-toe",
+                "name": "@tic-tac-toe@games.rerere.org"
+            },
+            {
+                "type": "Mention",
+                "href": "https://gamerplus.org/users/9niy0yaqfmqwc4hl",
+                "name": "@h4kor@gamerplus.org"
+            }
+        ],
+        "replies": {
+            "id": "https://chaos.social/users/h4kor/statuses/112050573043315472/replies",
+            "type": "Collection",
+            "first": {
+                "type": "CollectionPage",
+                "next": "https://chaos.social/users/h4kor/statuses/112050573043315472/replies?only_other_accounts=true&page=true",
+                "partOf": "https://chaos.social/users/h4kor/statuses/112050573043315472/replies",
+                "items": []
+            }
+        }
+    }
+}

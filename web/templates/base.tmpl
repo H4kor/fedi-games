@@ -1,0 +1,20 @@
+{{define "base"}}
+<!doctype html>
+<html lang='en' data-theme="light">
+    <head>
+        <meta charset='utf-8'>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>{{template "title" .Data}} - Fedi-Games</title>
+        <meta property="og:title" content="{{template "title" .Data}}" />
+
+        <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+
+        <link rel='stylesheet' href='/static/pico.min.css'>
+    </head>
+    <body>
+        <main class="container">
+            {{template "main" .Data}}
+        </main>
+    </body>
+</html>
+{{end}}

@@ -6,7 +6,7 @@ type Game interface {
 	OnMsg(*models.GameSession, GameMsg) (interface{}, GameReply, error)
 	NewState() interface{}
 	Name() string
-	Summay() string
+	Summary() string
 }
 
 type GameMsg struct {

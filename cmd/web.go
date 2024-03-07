@@ -19,6 +19,8 @@ func main() {
 	mux.HandleFunc("GET /games/{game}/following", web.FollowingHandler)
 	mux.HandleFunc("GET /games/{game}/followers", web.FollowersHandler)
 	mux.HandleFunc("GET /games/{game}/avatar.png", web.AvatarHandler)
+	mux.Handle("GET /static/", web.StaticServer())
+	mux.HandleFunc("GET /{$}", web.IndexHandler)
 
 	println("Starting server on port 4040")
 	err := http.ListenAndServe(":4040", mux)

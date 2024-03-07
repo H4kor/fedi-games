@@ -1,0 +1,15 @@
+{{define "title"}}Index{{end}}
+
+{{define "main"}}
+
+
+<h1>{{ .Game.Name }}</h1>
+<img src="/games/{{.Game.Name}}/avatar.png" width="200" />
+<br>
+{{.Game.Summary}}
+
+<br>
+<br>
+<strong>Start a game by mentioning <mark>@{{.Game.Name}}@{{.Cfg.Host}}</mark></strong>
+
+{{ end }}

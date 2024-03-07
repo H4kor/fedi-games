@@ -26,8 +26,8 @@ type TicTacToeState struct {
 type TicTacToe struct {
 }
 
-// Summay implements games.Game.
-func (t *TicTacToe) Summay() string {
+// Summary implements games.Game.
+func (t *TicTacToe) Summary() string {
 	return `
 Classic game of tic-tac-toe. <br>
 Mention me and a component to start a game.

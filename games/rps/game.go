@@ -114,8 +114,8 @@ func (r *RockPaperScissor) OnMsg(sess *models.GameSession, msg games.GameMsg) (i
 	}, nil
 }
 
-// Summay implements games.Game.
-func (r *RockPaperScissor) Summay() string {
+// Summary implements games.Game.
+func (r *RockPaperScissor) Summary() string {
 	return "Just 'Pock Paper Scissors!'. Write me your choice to start a game.<br>I promise I won't cheat."
 }
 

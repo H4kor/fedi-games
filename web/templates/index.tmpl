@@ -1,0 +1,23 @@
+{{define "title"}}Index{{end}}
+
+{{define "main"}}
+<h1>Fedi Games!</h1>
+
+<p>
+    Welcome to Fedi Games.
+    This is a small collection of games which can be played in the fediverse.
+    Use your favorite fediverse app, such as <a target="_blank" href="https://joinmastodon.org/">Mastodon</a>, to play the games listed below.
+    Simple mention the bot in a message and the game will begin.
+</p>
+
+<h2>Games</h2>
+
+
+{{ range . }}
+    <article>
+        <a href="/games/{{.Name}}"><h4>{{ .Name }}</h4></a>
+        {{.Summary}}
+    </article>
+{{ end }}
+
+{{ end }}

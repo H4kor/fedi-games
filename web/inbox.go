@@ -16,7 +16,18 @@ import (
 	"rerere.org/fedi-games/internal/html"
 )
 
-func InboxHandler(w http.ResponseWriter, r *http.Request) {
+type InboxHandler struct {
+	engine *internal.GameEngine
+}
+
+func NewInboxHandler(engine *internal.GameEngine) http.Handler {
+	return &InboxHandler{
+		engine: engine,
+	}
+}
+
+// ServeHTTP implements http.Handler.
+func (i *InboxHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	gameName := r.PathValue("game")
 	cfg := config.GetConfig()
 
@@ -99,7 +110,7 @@ func InboxHandler(w http.ResponseWriter, r *http.Request) {
 			slog.Info("Content of object", "content", o.Content.String(), "plain", plain)
 			slog.Info("Game Message", "msg", gameMsg)
 
-			go internal.ProcessMsg(sess, game, gameMsg)
+			i.engine.ProcessMsg(sess, game, gameMsg)
 
 			slog.Info("Done")
 

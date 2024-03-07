@@ -14,7 +14,43 @@ import (
 	"rerere.org/fedi-games/internal/acpub"
 )
 
-func ProcessMsg(sess *models.GameSession, game games.Game, msg games.GameMsg) {
+type GameStep struct {
+	Sess *models.GameSession
+	Game games.Game
+	Msg  games.GameMsg
+}
+
+type GameEngine struct {
+	queue chan GameStep
+}
+
+func NewGameEngine() *GameEngine {
+	queue := make(chan GameStep, 10)
+	engine := &GameEngine{
+		queue: queue,
+	}
+	engine.startProcessor()
+	return engine
+}
+
+func (engine *GameEngine) startProcessor() {
+	go func() {
+		for {
+			step := <-engine.queue
+			engine.process(step.Sess, step.Game, step.Msg)
+		}
+	}()
+}
+
+func (engine *GameEngine) ProcessMsg(sess *models.GameSession, game games.Game, msg games.GameMsg) {
+	engine.queue <- GameStep{
+		Sess: sess,
+		Game: game,
+		Msg:  msg,
+	}
+}
+
+func (engine *GameEngine) process(sess *models.GameSession, game games.Game, msg games.GameMsg) {
 	cfg := config.GetConfig()
 
 	// add retrieved message to game session

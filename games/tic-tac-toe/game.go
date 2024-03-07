@@ -52,6 +52,24 @@ func (*TicTacToe) initState(state *TicTacToeState, msg games.GameMsg) error {
 	return nil
 }
 
+func (t *TicTacToe) renderField(state TicTacToeState) string {
+	m := "Field:<br>"
+	for i, f := range state.Fields {
+		if f == 0 {
+			m += intToEmoji(i + 1)
+		} else if f == 1 {
+			m += "🔵"
+		} else if f == 2 {
+			m += "🟠"
+		}
+		if (i+1)%3 == 0 {
+			m += "<br>"
+		}
+	}
+
+	return m
+}
+
 // OnMsg implements games.Game.
 func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (interface{}, games.GameReply, error) {
 	state := session.Data.(*TicTacToeState)
@@ -101,14 +119,14 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 	if found == 0 {
 		return state, games.GameReply{
 			To:  []string{msg.From},
-			Msg: "The message must include a field number",
+			Msg: "The message must include a field number between 1 and 9. <br><br>" + t.renderField(*state),
 		}, nil
 	}
 	// field already used
 	if state.Fields[found-1] != 0 {
 		return state, games.GameReply{
 			To:  []string{msg.From},
-			Msg: "This field is already taken",
+			Msg: "This field is already taken <br><br>" + t.renderField(*state),
 		}, nil
 	}
 
@@ -116,19 +134,7 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 	state.WhosTurn = (state.WhosTurn % 2) + 1
 
 	// "print" state to reply
-	m := "Field:<br>"
-	for i, f := range state.Fields {
-		if f == 0 {
-			m += intToEmoji(i + 1)
-		} else if f == 1 {
-			m += "🔵"
-		} else if f == 2 {
-			m += "🟠"
-		}
-		if (i+1)%3 == 0 {
-			m += "<br>"
-		}
-	}
+	m := t.renderField(*state)
 	m += "<br>"
 	actorA, _ := acpub.GetActor(state.PlayerA)
 	actorB, _ := acpub.GetActor(state.PlayerB)

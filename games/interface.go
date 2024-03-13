@@ -7,6 +7,7 @@ type Game interface {
 	NewState() interface{}
 	Name() string
 	Summary() string
+	Example() string
 }
 
 type GameMsg struct {

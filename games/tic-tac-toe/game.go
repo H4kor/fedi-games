@@ -26,6 +26,11 @@ type TicTacToeState struct {
 type TicTacToe struct {
 }
 
+// Example implements games.Game.
+func (t *TicTacToe) Example() string {
+	return "@alice@example.com 5"
+}
+
 // Summary implements games.Game.
 func (t *TicTacToe) Summary() string {
 	return `

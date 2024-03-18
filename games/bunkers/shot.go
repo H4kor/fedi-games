@@ -23,7 +23,7 @@ type point struct {
 // getImpact returns trail of a shot and whether the terrain or a bunker was hit (or neither)
 // first bool is HIT TERRAIN, second bool is HIT BUNKER.
 // Both are mutually exclusive, but both can be false if out of bounds shot
-func (s *Shot) getImpact(state BunkersGameState) ([]point, bool, bool) {
+func (s *Shot) getImpact(terrain Terrain) ([]point, bool, bool) {
 	x := float64(s.StartX)
 	y := float64(s.StartY)
 	dx := math.Sin(float64(s.Angle)*math.Pi/180.0) * float64(s.Vel)
@@ -40,7 +40,7 @@ func (s *Shot) getImpact(state BunkersGameState) ([]point, bool, bool) {
 		}
 		// TODO: check collision with bunker
 		// check collision with terrain
-		if y <= float64(state.Terrain.Height[int(x)]) {
+		if y <= float64(terrain.Height[int(x)]) {
 			break
 		}
 
@@ -56,7 +56,7 @@ func (s *Shot) getImpact(state BunkersGameState) ([]point, bool, bool) {
 
 func (s *Shot) Draw(state BunkersGameState, canvas *image.Paletted) {
 
-	trail, hit_terrain, hit_bunker := s.getImpact(state)
+	trail, hit_terrain, hit_bunker := s.getImpact(state.Terrain())
 
 	for _, p := range trail {
 		canvas.Set(p.X, canvas.Rect.Max.Y-p.Y, PALETTE[TRAIL])
@@ -83,12 +83,12 @@ func (s *Shot) Draw(state BunkersGameState, canvas *image.Paletted) {
 }
 
 // DestroyTerrain returns a new terrain with the effect of the shot
-func (s *Shot) DestroyTerrain(state BunkersGameState) Terrain {
+func (s *Shot) DestroyTerrain(t Terrain) Terrain {
 	nt := Terrain{
-		Height: state.Terrain.Height,
+		Height: t.Height,
 	}
 
-	trail, hit_terrain, hit_bunker := s.getImpact(state)
+	trail, hit_terrain, hit_bunker := s.getImpact(t)
 	if hit_terrain || hit_bunker {
 		p := trail[len(trail)-1]
 		x := p.X
@@ -96,8 +96,13 @@ func (s *Shot) DestroyTerrain(state BunkersGameState) Terrain {
 		for dx := -EXPLOSION_RADIUS; dx <= EXPLOSION_RADIUS; dx++ {
 			// x² + y² = r² , solve for min y
 			// y = sqrt(r² - x²)
+			dy := math.Sqrt(float64(EXPLOSION_RADIUS*EXPLOSION_RADIUS - dx*dx))
+			println(dx, dy)
+			nt.Height[x+dx] = int(math.Min(
+				float64(y)-dy,
+				float64(nt.Height[x+dx]),
+			))
 		}
-
 	}
 
 	return nt

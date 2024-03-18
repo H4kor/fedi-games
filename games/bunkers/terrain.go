@@ -10,7 +10,15 @@ type Terrain struct {
 	Height []int
 }
 
-func (t *Terrain) Draw(img *image.Paletted) {
+func (t Terrain) Copy() Terrain {
+	h := make([]int, len(t.Height))
+	copy(h, t.Height)
+	return Terrain{
+		Height: h,
+	}
+}
+
+func (t Terrain) Draw(img *image.Paletted) {
 
 	for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
 		h := t.Height[x]

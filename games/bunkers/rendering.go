@@ -16,9 +16,9 @@ func Render(state BunkersGameState) {
 		PALETTE,
 	)
 
-	state.Terrain.Draw(canvas)
-	DrawBunker(state.Terrain, state.PosA, uint(PLAYER_A), canvas)
-	DrawBunker(state.Terrain, state.PosB, uint(PLAYER_B), canvas)
+	state.Terrain().Draw(canvas)
+	DrawBunker(state.Terrain(), state.PosA, uint(PLAYER_A), canvas)
+	DrawBunker(state.Terrain(), state.PosB, uint(PLAYER_B), canvas)
 
 	if len(state.Shots) != 0 {
 		state.Shots[len(state.Shots)-1].Draw(state, canvas)

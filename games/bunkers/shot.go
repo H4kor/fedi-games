@@ -11,8 +11,8 @@ var GRAVITY = 10.0
 type Shot struct {
 	StartX int
 	StartY int
-	Vel    int
-	Angle  int
+	Vel    float64
+	Angle  float64
 }
 
 type point struct {
@@ -21,22 +21,23 @@ type point struct {
 }
 
 // getImpact returns trail of a shot and whether the terrain or a bunker was hit (or neither)
-// first bool is HIT TERRAIN, second bool is HIT BUNKER.
+// second return (bool) is HIT TERRAIN, third return (int) is HIT BUNKER.
+// 0 == no bunker it, 1 == Player A it, 2 == Player B hit
 // Both are mutually exclusive, but both can be false if out of bounds shot
-func (s *Shot) getImpact(terrain Terrain) ([]point, bool, bool) {
+func (s *Shot) getImpact(terrain Terrain) ([]point, bool, int) {
 	x := float64(s.StartX)
 	y := float64(s.StartY)
 	dx := math.Sin(float64(s.Angle)*math.Pi/180.0) * float64(s.Vel)
 	dy := math.Cos(float64(s.Angle)*math.Pi/180.0) * float64(s.Vel)
 
-	t := 0.01
+	t := 1.0 / float64(s.Vel)
 
 	trail := make([]point, 0)
 
 	for {
 		// if out of bound on x or bottom y -> abort
 		if int(x) < 0 || int(x) >= WIDTH || int(y) < 0 {
-			return trail, false, false
+			return trail, false, 0
 		}
 		// TODO: check collision with bunker
 		// check collision with terrain
@@ -51,7 +52,7 @@ func (s *Shot) getImpact(terrain Terrain) ([]point, bool, bool) {
 		dy -= t * GRAVITY
 	}
 
-	return trail, true, false
+	return trail, true, 0
 }
 
 func (s *Shot) Draw(state BunkersGameState, canvas *image.Paletted) {
@@ -63,7 +64,7 @@ func (s *Shot) Draw(state BunkersGameState, canvas *image.Paletted) {
 
 	}
 
-	if hit_terrain || hit_bunker {
+	if hit_terrain || hit_bunker != 0 {
 
 		p := trail[len(trail)-1]
 		x := float64(p.X)
@@ -89,7 +90,7 @@ func (s *Shot) DestroyTerrain(t Terrain) Terrain {
 	}
 
 	trail, hit_terrain, hit_bunker := s.getImpact(t)
-	if hit_terrain || hit_bunker {
+	if hit_terrain || hit_bunker != 0 {
 		p := trail[len(trail)-1]
 		x := p.X
 		y := p.Y
@@ -97,7 +98,6 @@ func (s *Shot) DestroyTerrain(t Terrain) Terrain {
 			// x² + y² = r² , solve for min y
 			// y = sqrt(r² - x²)
 			dy := math.Sqrt(float64(EXPLOSION_RADIUS*EXPLOSION_RADIUS - dx*dx))
-			println(dx, dy)
 			nt.Height[x+dx] = int(math.Min(
 				float64(y)-dy,
 				float64(nt.Height[x+dx]),

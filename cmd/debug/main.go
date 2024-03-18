@@ -3,8 +3,8 @@ package main
 import "rerere.org/fedi-games/games/bunkers"
 
 func main() {
-	state := bunkers.NewBunkersGameState()
-	for i := 0; i < 2; i++ {
+	state := bunkers.NewBunkersGameState("a", "b")
+	for i := 0; i < 20; i++ {
 		state.Shots = append(state.Shots, bunkers.Shot{
 			StartX: state.PosA,
 			StartY: state.Terrain().Height[state.PosA] + 15,
@@ -14,6 +14,6 @@ func main() {
 
 	}
 
-	bunkers.Render(state)
+	bunkers.Render(*state)
 
 }

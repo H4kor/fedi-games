@@ -11,6 +11,7 @@ var GRAVITY = 10.0
 type Shot struct {
 	StartX int
 	StartY int
+	Wind   int
 	Vel    float64
 	Angle  float64
 }
@@ -48,6 +49,7 @@ func (s *Shot) getImpact(terrain Terrain) ([]point, bool) {
 		x += t * dx
 		y += t * dy
 		dy -= t * GRAVITY
+		dx += t * float64(s.Wind)
 	}
 
 	return trail, true

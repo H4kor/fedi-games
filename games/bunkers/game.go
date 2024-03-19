@@ -49,6 +49,7 @@ type BunkersGameState struct {
 	WhosTurn    int // 1 = PlayerA, 2 = PlayerB
 	Shots       []Shot
 	Init        bool
+	Wind        int
 }
 
 type BunkersGameStep struct {
@@ -61,6 +62,28 @@ type BunkersGameResult struct {
 	Winner int // 0 == None, 1 == PlayerA, 2 == PlayerB
 }
 
+func newWind() int {
+	return rand.Intn(11) - 5
+}
+
+func windMsg(wind int) string {
+	w := ""
+	if wind == 0 {
+		w = "↔️"
+	}
+	if wind < 0 {
+		for i := 0; i < -wind; i++ {
+			w += "⬅️"
+		}
+	}
+	if wind > 0 {
+		for i := 0; i < wind; i++ {
+			w += "➡️"
+		}
+	}
+	return "Wind: " + w
+}
+
 func NewBunkersGameState(a string, b string) *BunkersGameState {
 	return &BunkersGameState{
 		InitTerrain: NewTerrain(),
@@ -71,6 +94,7 @@ func NewBunkersGameState(a string, b string) *BunkersGameState {
 		WhosTurn:    1,
 		Shots:       make([]Shot, 0),
 		Init:        true,
+		Wind:        newWind(),
 	}
 }
 
@@ -98,6 +122,7 @@ func (s *BunkersGameState) Step(step BunkersGameStep) BunkersGameResult {
 		StartY: s.Terrain().Height[startX] + 15,
 		Vel:    step.Vel,
 		Angle:  angle,
+		Wind:   s.Wind,
 	}
 
 	// check if shot hits a bunker
@@ -128,6 +153,7 @@ func (s *BunkersGameState) Step(step BunkersGameStep) BunkersGameResult {
 
 	// add shot to state
 	s.Shots = append(s.Shots, shot)
+	s.Wind = newWind()
 
 	return BunkersGameResult{
 		Winner: winner,
@@ -210,7 +236,7 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 
 		return state, games.GameReply{
 			To:  []string{msg.From},
-			Msg: "You must include 'power' and 'angle' in your message followed by a number. Example: angle 45 power 60",
+			Msg: "You must include 'power' and 'angle' in your message followed by a number. Example: angle 45 power 60.<br>" + windMsg(state.Wind),
 			Attachments: []games.GameAttachment{
 				{
 					Url:       img,
@@ -230,6 +256,7 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 
 	result := state.Step(step)
 	state.WhosTurn = (state.WhosTurn % 2) + 1
+	state.Wind = newWind()
 
 	img, err := Render(*state)
 	if err != nil {
@@ -259,7 +286,7 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 			},
 		}, nil
 	} else {
-		m := "<br>"
+		m := windMsg(state.Wind) + "<br>"
 		m += "🟥 " + acpub.ActorToLink(actorA) + "<br>"
 		m += "🟦 " + acpub.ActorToLink(actorB) + "<br>"
 		m += "Its your turn: "

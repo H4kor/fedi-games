@@ -19,6 +19,6 @@ var (
 		color.RGBA{R: 255, G: 0, B: 0, A: 255},     // PLAYER_A
 		color.RGBA{R: 0, G: 0, B: 255, A: 255},     // PLAYER_B
 		color.RGBA{R: 255, G: 100, B: 0, A: 255},   // TRAIL
-		color.RGBA{R: 255, G: 255, B: 255, A: 255}, // EXPLOSION
+		color.RGBA{R: 255, G: 255, B: 200, A: 255}, // EXPLOSION
 	}
 )

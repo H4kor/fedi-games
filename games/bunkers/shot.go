@@ -20,11 +20,9 @@ type point struct {
 	Y int
 }
 
-// getImpact returns trail of a shot and whether the terrain or a bunker was hit (or neither)
-// second return (bool) is HIT TERRAIN, third return (int) is HIT BUNKER.
-// 0 == no bunker it, 1 == Player A it, 2 == Player B hit
-// Both are mutually exclusive, but both can be false if out of bounds shot
-func (s *Shot) getImpact(terrain Terrain) ([]point, bool, int) {
+// getImpact returns trail of a shot and whether the shot landed in terrain
+// second return (bool) is HIT TERRAIN
+func (s *Shot) getImpact(terrain Terrain) ([]point, bool) {
 	x := float64(s.StartX)
 	y := float64(s.StartY)
 	dx := math.Sin(float64(s.Angle)*math.Pi/180.0) * float64(s.Vel)
@@ -37,7 +35,7 @@ func (s *Shot) getImpact(terrain Terrain) ([]point, bool, int) {
 	for {
 		// if out of bound on x or bottom y -> abort
 		if int(x) < 0 || int(x) >= WIDTH || int(y) < 0 {
-			return trail, false, 0
+			return trail, false
 		}
 		// TODO: check collision with bunker
 		// check collision with terrain
@@ -52,19 +50,19 @@ func (s *Shot) getImpact(terrain Terrain) ([]point, bool, int) {
 		dy -= t * GRAVITY
 	}
 
-	return trail, true, 0
+	return trail, true
 }
 
 func (s *Shot) Draw(state BunkersGameState, canvas *image.Paletted) {
 
-	trail, hit_terrain, hit_bunker := s.getImpact(state.Terrain())
+	trail, hit_terrain := s.getImpact(state.Terrain())
 
 	for _, p := range trail {
 		canvas.Set(p.X, canvas.Rect.Max.Y-p.Y, PALETTE[TRAIL])
 
 	}
 
-	if hit_terrain || hit_bunker != 0 {
+	if hit_terrain {
 
 		p := trail[len(trail)-1]
 		x := float64(p.X)
@@ -89,8 +87,8 @@ func (s *Shot) DestroyTerrain(t Terrain) Terrain {
 		Height: t.Height,
 	}
 
-	trail, hit_terrain, hit_bunker := s.getImpact(t)
-	if hit_terrain || hit_bunker != 0 {
+	trail, hit_terrain := s.getImpact(t)
+	if hit_terrain {
 		p := trail[len(trail)-1]
 		x := p.X
 		y := p.Y

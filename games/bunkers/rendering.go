@@ -1,13 +1,16 @@
 package bunkers
 
 import (
+	"bytes"
 	"image"
 	"image/png"
-	"log"
-	"os"
+
+	"rerere.org/fedi-games/internal"
 )
 
-func Render(state BunkersGameState) {
+// Render the state into a png file and save it as as media files
+// returns the full url of the file
+func Render(state BunkersGameState) (string, error) {
 	canvas := image.NewPaletted(
 		image.Rectangle{
 			Min: image.Point{X: 0, Y: 0},
@@ -24,19 +27,13 @@ func Render(state BunkersGameState) {
 		state.Shots[len(state.Shots)-1].Draw(state, canvas)
 	}
 
-	f, err := os.Create("image.png")
-	if err != nil {
-		log.Fatal(err)
+	var buffer bytes.Buffer
+
+	if err := png.Encode(&buffer, canvas); err != nil {
+		return "", err
 	}
 
-	if err := png.Encode(f, canvas); err != nil {
-		f.Close()
-		log.Fatal(err)
-	}
-
-	if err := f.Close(); err != nil {
-		log.Fatal(err)
-	}
+	return internal.StoreMedia(buffer.Bytes(), "png")
 }
 
 func DrawBunker(t Terrain, at int, color uint, canvas *image.Paletted) {

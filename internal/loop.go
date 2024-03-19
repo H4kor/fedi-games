@@ -62,6 +62,7 @@ func (engine *GameEngine) process(sess *models.GameSession, game games.Game, msg
 	// contruct params
 	to := vocab.ItemCollection{}
 	mentions := vocab.ItemCollection{}
+	attachments := vocab.ItemCollection{}
 	msgStr := ""
 
 	if err != nil {
@@ -77,6 +78,9 @@ func (engine *GameEngine) process(sess *models.GameSession, game games.Game, msg
 		msgStr = "💥 an error occured."
 	} else {
 		// happy path, Convert To to mentions
+		slog.Info("=====================Answer START=========================")
+		slog.Info("Answer", "msg", ret.Msg)
+		slog.Info("=====================Answer END=========================")
 		for _, t := range ret.To {
 			to = append(to, vocab.ID(t))
 			mention := vocab.MentionNew(
@@ -85,6 +89,14 @@ func (engine *GameEngine) process(sess *models.GameSession, game games.Game, msg
 			mention.Href = vocab.ID(t)
 			mentions = append(mentions, mention)
 			msgStr = ret.Msg
+		}
+		for _, a := range ret.Attachments {
+			att := vocab.Document{
+				Type:      vocab.DocumentType,
+				MediaType: vocab.MimeType(a.MediaType),
+				URL:       vocab.ID(a.Url),
+			}
+			attachments = append(attachments, att)
 		}
 	}
 
@@ -100,6 +112,7 @@ func (engine *GameEngine) process(sess *models.GameSession, game games.Game, msg
 		Content: vocab.NaturalLanguageValues{
 			{Value: vocab.Content(msgStr)},
 		},
+		Attachment: attachments,
 	}
 	// add note to session messages
 	sess.MessageIds = append(sess.MessageIds, note.ID.String())

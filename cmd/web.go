@@ -20,6 +20,7 @@ func main() {
 	mux.HandleFunc("GET /games/{game}/followers", web.FollowersHandler)
 	mux.HandleFunc("GET /games/{game}/avatar.png", web.AvatarHandler)
 	mux.Handle("GET /static/", web.StaticServer())
+	mux.Handle("GET /media/", http.StripPrefix("/media", web.MediaServer()))
 	mux.HandleFunc("GET /{$}", web.IndexHandler)
 
 	println("Starting server on port 4040")

@@ -12,6 +12,7 @@ require (
 	git.sr.ht/~mariusor/go-xsd-duration v0.0.0-20220703122237-02e73435a078 // indirect
 	github.com/go-ap/errors v0.0.0-20231003111023-183eef4b31b7 // indirect
 	github.com/go-fed/httpsig v1.1.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/jbowes/httpsig v0.1.0 // indirect
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect

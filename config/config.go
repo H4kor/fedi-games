@@ -14,6 +14,7 @@ type Config struct {
 	PublicKeyPem string
 	PrivKey      *rsa.PrivateKey
 	DatabaseUrl  string
+	MediaPath    string
 }
 
 var cfg *Config
@@ -48,6 +49,7 @@ func GetConfig() Config {
 			PublicKeyPem: string(pubKeyPem),
 			PrivKey:      privKey,
 			DatabaseUrl:  getEnv("DATABASE_URL", "games.db"),
+			MediaPath:    getEnv("MEDIA_PATH", "/tmp/media"),
 		}
 	}
 

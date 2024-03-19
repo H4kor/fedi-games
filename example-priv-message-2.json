@@ -16,7 +16,7 @@
     "actor": "https://chaos.social/users/h4kor",
     "published": "2024-02-28T20:42:39Z",
     "to": [
-        "https://games.rerere.org/games/tic-tac-toe",
+        "http://localhost:4040/games/bunkers",
         "https://mastodon.social/users/h4kor"
     ],
     "cc": [],
@@ -29,7 +29,7 @@
         "url": "https://chaos.social/@h4kor/112011048380997967",
         "attributedTo": "https://chaos.social/users/h4kor",
         "to": [
-            "https://games.rerere.org/games/tic-tac-toe",
+            "http://localhost:4040/games/bunkers",
             "https://mastodon.social/users/h4kor"
         ],
         "cc": [],
@@ -37,16 +37,16 @@
         "atomUri": "https://chaos.social/users/h4kor/statuses/112011048380997967",
         "inReplyToAtomUri": null,
         "conversation": "tag:chaos.social,2024-02-28:objectId=166761414:objectType=Conversation",
-        "content": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https: //games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@h4kor\" class=\"u-url mention\">@<span>h4kor@mastodon.social</span></a></span> </p><p>Start 5</p>",
+        "content": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https: //games.rerere.org/games/bunkers\" class=\"u-url mention\">@<span>bunkers</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@h4kor\" class=\"u-url mention\">@<span>h4kor@mastodon.social</span></a></span> </p><p>angle 10 power 20</p>",
         "contentMap": {
-            "de": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://games.rerere.org/games/tic-tac-toe\" class=\"u-url mention\">@<span>tic-tac-toe</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@h4kor\" class=\"u-url mention\">@<span>h4kor@mastodon.social</span></a></span> </p><p>Start 5</p>"
+            "de": "<p><span class=\"h-card\" translate=\"no\"><a href=\"http://localhost:4040/games/bunkers\" class=\"u-url mention\">@<span>bunkers</span></a></span> <span class=\"h-card\" translate=\"no\"><a href=\"https://mastodon.social/@h4kor\" class=\"u-url mention\">@<span>h4kor@mastodon.social</span></a></span> </p><p>angle 10 power 20</p>"
         },
         "attachment": [],
         "tag": [
             {
                 "type": "Mention",
-                "href": "https://games.rerere.org/games/tic-tac-toe",
-                "name": "@tic-tac-toe@games.rerere.org"
+                "href": "http://localhost:4040/games/bunkers",
+                "name": "@bunkers@games.rerere.org"
             },
             {
                 "type": "Mention",

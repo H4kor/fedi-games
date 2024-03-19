@@ -18,7 +18,13 @@ type GameMsg struct {
 	ReplyTo *string
 }
 
+type GameAttachment struct {
+	Url       string
+	MediaType string
+}
+
 type GameReply struct {
-	To  []string
-	Msg string
+	To          []string
+	Msg         string
+	Attachments []GameAttachment
 }

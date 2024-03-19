@@ -1,15 +1,44 @@
 package bunkers
 
 import (
+	"math"
 	"math/rand"
 	"strconv"
 	"strings"
 
 	"rerere.org/fedi-games/domain/models"
 	"rerere.org/fedi-games/games"
+	"rerere.org/fedi-games/internal/acpub"
 )
 
+func NewBunkerGame() games.Game {
+	return &BunkersGame{}
+}
+
 type BunkersGame struct{}
+
+// Example implements games.Game.
+func (t *BunkersGame) Example() string {
+	return "@alice@example.com power 13 angle 45"
+}
+
+// Name implements games.Game.
+func (BunkersGame) Name() string {
+	return "bunkers"
+}
+
+// NewState implements games.Game.
+func (t *BunkersGame) NewState() interface{} {
+	return &BunkersGameState{}
+}
+
+// Summary implements games.Game.
+func (t *BunkersGame) Summary() string {
+	return `It's the year 2169, the world is ravaged by runaway global warming.<br>
+	The only lives left are clones of billionaires in their apocalypse bunkers.<br>
+	Their prime directives leave them no other choice than to fight until their are the only one left.
+	`
+}
 
 type BunkersGameState struct {
 	InitTerrain Terrain
@@ -72,13 +101,36 @@ func (s *BunkersGameState) Step(step BunkersGameStep) BunkersGameResult {
 	}
 
 	// check if shot hits a bunker
-	_, _, hit := shot.getImpact(s.Terrain())
+	trail, valid := shot.getImpact(s.Terrain())
+	winner := 0
+	if valid {
+		p := trail[len(trail)-1]
+		hitX := p.X
+		hitY := p.Y
+
+		aX := s.PosA
+		aY := s.Terrain().Height[aX]
+		bX := s.PosB
+		bY := s.Terrain().Height[bX]
+
+		daX := float64(hitX - aX)
+		daY := float64(hitY - aY)
+		dbX := float64(hitX - bX)
+		dbY := float64(hitY - bY)
+
+		if math.Sqrt(daX*daX+daY*daY) < float64(EXPLOSION_RADIUS) {
+			winner = 2
+		}
+		if math.Sqrt(dbX*dbX+dbY*dbY) < float64(EXPLOSION_RADIUS) {
+			winner = 1
+		}
+	}
 
 	// add shot to state
 	s.Shots = append(s.Shots, shot)
 
 	return BunkersGameResult{
-		Winner: hit,
+		Winner: winner,
 	}
 }
 
@@ -86,7 +138,7 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 	state := session.Data.(*BunkersGameState)
 
 	// initialize the game
-	if state.Init == false {
+	if !state.Init {
 		if len(msg.To) != 1 {
 			return state, games.GameReply{
 				To:  []string{msg.From},
@@ -110,7 +162,6 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 
 	// parse  message
 	parts := strings.Split(msg.Msg, " ")
-	found := 0
 	vel := 0.0
 	angle := 0.0
 	velFound := false
@@ -151,11 +202,25 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 
 	// not all info given
 	if !(angleFound && velFound) {
+		// render state to show player the map
+		img, err := Render(*state)
+		if err != nil {
+			return state, games.GameReply{}, err
+		}
+
 		return state, games.GameReply{
 			To:  []string{msg.From},
-			Msg: "You must include 'power' and 'angle' in your message followed by a number. Example: angle 10 power 20",
+			Msg: "You must include 'power' and 'angle' in your message followed by a number. Example: angle 45 power 60",
+			Attachments: []games.GameAttachment{
+				{
+					Url:       img,
+					MediaType: "image/png",
+				},
+			},
 		}, nil
 	}
+
+	vel = math.Max(math.Min(vel, 1000), 0)
 
 	step := BunkersGameStep{
 		Player: state.WhosTurn,
@@ -166,15 +231,53 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 	result := state.Step(step)
 	state.WhosTurn = (state.WhosTurn % 2) + 1
 
+	img, err := Render(*state)
+	if err != nil {
+		return state, games.GameReply{}, err
+	}
+
+	actorA, _ := acpub.GetActor(state.PlayerA)
+	actorB, _ := acpub.GetActor(state.PlayerB)
+
 	if result.Winner != 0 {
+		m := "Winner: 🎉🎉🎉 "
+		if result.Winner == 1 {
+			m += acpub.ActorToLink(actorA)
+		} else {
+			m += acpub.ActorToLink(actorB)
+		}
+		m += " 🎉🎉🎉"
+
 		return state, games.GameReply{
 			To:  []string{state.PlayerA, state.PlayerB},
-			Msg: "TODO: Someone won!",
+			Msg: m,
+			Attachments: []games.GameAttachment{
+				{
+					Url:       img,
+					MediaType: "image/png",
+				},
+			},
 		}, nil
 	} else {
+		m := "<br>"
+		m += "🟥 " + acpub.ActorToLink(actorA) + "<br>"
+		m += "🟦 " + acpub.ActorToLink(actorB) + "<br>"
+		m += "Its your turn: "
+		if state.WhosTurn == 1 {
+			m += acpub.ActorToLink(actorA)
+		} else {
+			m += acpub.ActorToLink(actorB)
+		}
+
 		return state, games.GameReply{
 			To:  []string{state.PlayerA, state.PlayerB},
-			Msg: "TODO: Next Turn!",
+			Msg: m,
+			Attachments: []games.GameAttachment{
+				{
+					Url:       img,
+					MediaType: "image/png",
+				},
+			},
 		}, nil
 	}
 }

@@ -1,0 +1,76 @@
+{
+    "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        {
+            "ostatus": "http://ostatus.org#",
+            "atomUri": "ostatus:atomUri",
+            "inReplyToAtomUri": "ostatus:inReplyToAtomUri",
+            "conversation": "ostatus:conversation",
+            "sensitive": "as:sensitive",
+            "toot": "http://joinmastodon.org/ns#",
+            "votersCount": "toot:votersCount",
+            "blurhash": "toot:blurhash",
+            "focalPoint": {
+                "@container": "@list",
+                "@id": "toot:focalPoint"
+            }
+        }
+    ],
+    "id": "https://chaos.social/users/h4kor/statuses/112123926412043539/activity",
+    "type": "Create",
+    "actor": "https://chaos.social/users/h4kor",
+    "published": "2024-03-19T19:09:01Z",
+    "to": [
+        "https://games.rerere.org/games/rps"
+    ],
+    "cc": [],
+    "object": {
+        "id": "https://chaos.social/users/h4kor/statuses/112123926412043539",
+        "type": "Note",
+        "summary": null,
+        "inReplyTo": null,
+        "published": "2024-03-19T19:09:01Z",
+        "url": "https://chaos.social/@h4kor/112123926412043539",
+        "attributedTo": "https://chaos.social/users/h4kor",
+        "to": [
+            "https://games.rerere.org/games/rps"
+        ],
+        "cc": [],
+        "sensitive": false,
+        "atomUri": "https://chaos.social/users/h4kor/statuses/112123926412043539",
+        "inReplyToAtomUri": null,
+        "conversation": "tag:chaos.social,2024-03-19:objectId=170881663:objectType=Conversation",
+        "content": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https: //games.rerere.org/games/rps\" class=\"u-url mention\">@<span>rps</span></a></span></p>",
+        "contentMap": {
+            "de": "<p><span class=\"h-card\" translate=\"no\"><a href=\"https://games.rerere.org/games/rps\" class=\"u-url mention\">@<span>rps</span></a></span></p>"
+        },
+        "attachment": [
+            {
+                "type": "Document",
+                "mediaType": "image/jpeg",
+                "url": "https://assets.chaos.social/media_attachments/files/112/123/926/010/469/787/original/8411040be692e93b.jpeg",
+                "name": null,
+                "blurhash": "UFFEQHH?5QXT^R#+X8I;0yS#S$ofJ7J8nit6",
+                "width": 512,
+                "height": 512
+            }
+        ],
+        "tag": [
+            {
+                "type": "Mention",
+                "href": "https://games.rerere.org/games/rps",
+                "name": "@rps@games.rerere.org"
+            }
+        ],
+        "replies": {
+            "id": "https://chaos.social/users/h4kor/statuses/112123926412043539/replies",
+            "type": "Collection",
+            "first": {
+                "type": "CollectionPage",
+                "next": "https://chaos.social/users/h4kor/statuses/112123926412043539/replies?only_other_accounts=true&page=true",
+                "partOf": "https://chaos.social/users/h4kor/statuses/112123926412043539/replies",
+                "items": []
+            }
+        }
+    }
+}

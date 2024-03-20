@@ -50,6 +50,7 @@ type BunkersGameState struct {
 	Shots       []Shot
 	Init        bool
 	Wind        int
+	Ended       bool
 }
 
 type BunkersGameStep struct {
@@ -163,6 +164,14 @@ func (s *BunkersGameState) Step(step BunkersGameStep) BunkersGameResult {
 func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (interface{}, games.GameReply, error) {
 	state := session.Data.(*BunkersGameState)
 
+	// game already ended
+	if state.Ended {
+		return state, games.GameReply{
+			To:  []string{msg.From},
+			Msg: "The game already ended",
+		}, nil
+	}
+
 	// initialize the game
 	if !state.Init {
 		if len(msg.To) != 1 {
@@ -274,6 +283,7 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 			m += acpub.ActorToLink(actorB)
 		}
 		m += " 🎉🎉🎉"
+		state.Ended = true
 
 		return state, games.GameReply{
 			To:  []string{state.PlayerA, state.PlayerB},

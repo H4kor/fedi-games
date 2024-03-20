@@ -89,7 +89,7 @@ func NewBunkersGameState(a string, b string) *BunkersGameState {
 	return &BunkersGameState{
 		InitTerrain: NewTerrain(),
 		PosA:        50 + rand.Intn(150),
-		PosB:        600 + 50 + rand.Intn(150),
+		PosB:        600 + rand.Intn(150),
 		PlayerA:     a,
 		PlayerB:     b,
 		WhosTurn:    1,
@@ -177,7 +177,7 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 		if len(msg.To) != 1 {
 			return state, games.GameReply{
 				To:  []string{msg.From},
-				Msg: "You must mention exactly other player",
+				Msg: "You must mention exactly one other player",
 			}, nil
 		}
 

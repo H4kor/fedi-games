@@ -43,7 +43,7 @@ Moves are selected by replying with a number between 1 and 9.
 
 func (*TicTacToe) initState(state *TicTacToeState, msg games.GameMsg) error {
 	if len(msg.To) != 1 {
-		return errors.New("You must mention exactly other player")
+		return errors.New("You must mention exactly one other player")
 	}
 	state.Fields = []int{
 		0, 0, 0,

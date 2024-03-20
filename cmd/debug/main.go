@@ -7,8 +7,8 @@ func main() {
 	for i := 0; i < 6; i++ {
 		state.Shots = append(state.Shots, bunkers.Shot{
 			StartX: state.PosA,
-			StartY: state.Terrain().Height[state.PosA] + 15,
-			Angle:  -10,
+			StartY: state.Terrain().At(state.PosA) + 15,
+			Angle:  -30,
 			Vel:    90,
 			Wind:   5,
 		})

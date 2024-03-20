@@ -34,13 +34,21 @@ func (s *Shot) getImpact(terrain Terrain) ([]point, bool) {
 	trail := make([]point, 0)
 
 	for {
-		// if out of bound on x or bottom y -> abort
-		if int(x) < 0 || int(x) >= WIDTH || int(y) < 0 {
+		// if out of bound bottom y -> abort
+		if int(y) < 0 {
 			return trail, false
 		}
-		// TODO: check collision with bunker
+		// if in negative and wind also negative
+		if x < 0 && s.Wind <= 0 {
+			return trail, false
+		}
+		// if oob on right and wind positive
+		if int(x) >= WIDTH && s.Wind >= 0 {
+			return trail, false
+		}
+
 		// check collision with terrain
-		if y <= float64(terrain.Height[int(x)]) {
+		if y <= float64(terrain.At(int(x))) {
 			break
 		}
 
@@ -98,10 +106,10 @@ func (s *Shot) DestroyTerrain(t Terrain) Terrain {
 			// x² + y² = r² , solve for min y
 			// y = sqrt(r² - x²)
 			dy := math.Sqrt(float64(EXPLOSION_RADIUS*EXPLOSION_RADIUS - dx*dx))
-			nt.Height[x+dx] = int(math.Min(
+			nt.Set(x+dx, int(math.Min(
 				float64(y)-dy,
-				float64(nt.Height[x+dx]),
-			))
+				float64(nt.At(x+dx)),
+			)))
 		}
 	}
 

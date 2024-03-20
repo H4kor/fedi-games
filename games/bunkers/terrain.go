@@ -21,7 +21,7 @@ func (t Terrain) Copy() Terrain {
 func (t Terrain) Draw(img *image.Paletted) {
 
 	for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
-		h := t.Height[x]
+		h := t.At(x)
 		for y := img.Rect.Max.Y - 1; y >= img.Rect.Min.Y; y-- {
 			if HEIGHT-y > h {
 				break
@@ -29,6 +29,23 @@ func (t Terrain) Draw(img *image.Paletted) {
 			img.Set(x, y, PALETTE[GROUND])
 		}
 	}
+}
+
+func (t Terrain) At(x int) int {
+	if x < 0 {
+		return t.Height[0]
+	}
+	if x >= len(t.Height) {
+		return t.Height[len(t.Height)-1]
+	}
+	return t.Height[x]
+}
+
+func (t *Terrain) Set(x int, y int) {
+	if x < 0 || x >= len(t.Height) {
+		return
+	}
+	t.Height[x] = y
 }
 
 func NewTerrain() Terrain {

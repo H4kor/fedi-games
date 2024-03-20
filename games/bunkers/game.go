@@ -119,7 +119,7 @@ func (s *BunkersGameState) Step(step BunkersGameStep) BunkersGameResult {
 
 	shot := Shot{
 		StartX: startX,
-		StartY: s.Terrain().Height[startX] + 15,
+		StartY: s.Terrain().At(startX) + 15,
 		Vel:    step.Vel,
 		Angle:  angle,
 		Wind:   s.Wind,
@@ -134,9 +134,9 @@ func (s *BunkersGameState) Step(step BunkersGameStep) BunkersGameResult {
 		hitY := p.Y
 
 		aX := s.PosA
-		aY := s.Terrain().Height[aX]
+		aY := s.Terrain().At(aX)
 		bX := s.PosB
-		bY := s.Terrain().Height[bX]
+		bY := s.Terrain().At(bX)
 
 		daX := float64(hitX - aX)
 		daY := float64(hitY - aY)

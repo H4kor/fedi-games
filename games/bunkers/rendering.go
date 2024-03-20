@@ -37,7 +37,7 @@ func Render(state BunkersGameState) (string, error) {
 }
 
 func DrawBunker(t Terrain, at int, color uint, canvas *image.Paletted) {
-	h := t.Height[at]
+	h := t.At(at)
 
 	BUNKER_IN_GROUND := -2
 	BUNKER_HEIGHT := 15

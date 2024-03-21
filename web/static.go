@@ -8,6 +8,6 @@ import (
 //go:embed static
 var staticFs embed.FS
 
-func StaticServer() http.Handler {
+func (server *FediGamesServer) StaticServer() http.Handler {
 	return http.FileServer(http.FS(staticFs))
 }

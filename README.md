@@ -1,9 +1,5 @@
+Fedi-Games is a simple framework to build games for the [Fediverse](https://en.wikipedia.org/wiki/Fediverse) using the [ActivityPub](https://activitypub.rocks/) protocol.
 
+Fedi Game instances:
+- [games.rerere.org](https://games.rerere.org)
 
-## Persistence
-
-- GameSession stores the current state of a game
-    - Store as JSON
-    - Store all URIs being part of the GameSession 
-- Sent Messages are stored by their ID and game name
-    - Store the Note sent as JSON

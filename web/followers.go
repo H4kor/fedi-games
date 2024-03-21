@@ -7,10 +7,10 @@ import (
 	"github.com/go-ap/jsonld"
 )
 
-func FollowersHandler(w http.ResponseWriter, r *http.Request) {
+func (server *FediGamesServer) FollowersHandler(w http.ResponseWriter, r *http.Request) {
 	gameName := r.PathValue("game")
 
-	_, ok := GameMap[gameName]
+	_, ok := server.games[gameName]
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
 		return

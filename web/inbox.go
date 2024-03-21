@@ -12,26 +12,15 @@ import (
 	"rerere.org/fedi-games/domain/models"
 	"rerere.org/fedi-games/games"
 	"rerere.org/fedi-games/infra"
-	"rerere.org/fedi-games/internal"
 	"rerere.org/fedi-games/internal/html"
 )
 
-type InboxHandler struct {
-	engine *internal.GameEngine
-}
-
-func NewInboxHandler(engine *internal.GameEngine) http.Handler {
-	return &InboxHandler{
-		engine: engine,
-	}
-}
-
 // ServeHTTP implements http.Handler.
-func (i *InboxHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (server *FediGamesServer) InboxHandler(w http.ResponseWriter, r *http.Request) {
 	gameName := r.PathValue("game")
 	cfg := config.GetConfig()
 
-	game, ok := GameMap[gameName]
+	game, ok := server.games[gameName]
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -110,7 +99,7 @@ func (i *InboxHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			slog.Info("Content of object", "content", o.Content.String(), "plain", plain)
 			slog.Info("Game Message", "msg", gameMsg)
 
-			i.engine.ProcessMsg(sess, game, gameMsg)
+			server.engine.ProcessMsg(sess, game, gameMsg)
 
 			slog.Info("Done")
 

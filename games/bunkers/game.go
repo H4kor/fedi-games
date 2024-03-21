@@ -173,6 +173,7 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 	}
 
 	// initialize the game
+	first := false
 	if !state.Init {
 		if len(msg.To) != 1 {
 			return state, games.GameReply{
@@ -185,6 +186,7 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 			msg.From,
 			msg.To[0],
 		)
+		first = true
 	}
 
 	// check if it's players turn
@@ -235,6 +237,9 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 		}
 	}
 
+	actorA, _ := acpub.GetActor(state.PlayerA)
+	actorB, _ := acpub.GetActor(state.PlayerB)
+
 	// not all info given
 	if !(angleFound && velFound) {
 		// render state to show player the map
@@ -243,16 +248,42 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 			return state, games.GameReply{}, err
 		}
 
-		return state, games.GameReply{
-			To:  []string{msg.From},
-			Msg: "You must include 'power' and 'angle' in your message followed by a number. Example: angle 45 power 60.<br>" + windMsg(state.Wind),
-			Attachments: []games.GameAttachment{
-				{
-					Url:       img,
-					MediaType: "image/png",
+		if first {
+			m := "You shoot by replying with a messsage containing the words 'power' and 'angle' followed by a number. <br> Example: angle 45 power 60.<br>"
+			m += windMsg(state.Wind) + "<br>"
+			m += "🟥 " + acpub.ActorToLink(actorA) + "<br>"
+			m += "🟦 " + acpub.ActorToLink(actorB) + "<br>"
+			m += "Its your turn: "
+			if state.WhosTurn == 1 {
+				m += acpub.ActorToLink(actorA)
+			} else {
+				m += acpub.ActorToLink(actorB)
+			}
+
+			return state, games.GameReply{
+				To:  []string{state.PlayerA, state.PlayerB},
+				Msg: m,
+				Attachments: []games.GameAttachment{
+					{
+						Url:       img,
+						MediaType: "image/png",
+					},
 				},
-			},
-		}, nil
+			}, nil
+
+		} else {
+			return state, games.GameReply{
+				To:  []string{msg.From},
+				Msg: "You must include 'power' and 'angle' in your message followed by a number. Example: angle 45 power 60.<br>" + windMsg(state.Wind),
+				Attachments: []games.GameAttachment{
+					{
+						Url:       img,
+						MediaType: "image/png",
+					},
+				},
+			}, nil
+		}
+
 	}
 
 	vel = math.Max(math.Min(vel, 1000), 0)
@@ -271,9 +302,6 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 	if err != nil {
 		return state, games.GameReply{}, err
 	}
-
-	actorA, _ := acpub.GetActor(state.PlayerA)
-	actorB, _ := acpub.GetActor(state.PlayerB)
 
 	if result.Winner != 0 {
 		m := "Winner: 🎉🎉🎉 "

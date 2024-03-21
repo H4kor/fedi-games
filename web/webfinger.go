@@ -19,7 +19,7 @@ type WebfingerLink struct {
 	Href string `json:"href"`
 }
 
-func WebfingerHandler(w http.ResponseWriter, r *http.Request) {
+func (server *FediGamesServer) WebfingerHandler(w http.ResponseWriter, r *http.Request) {
 	host := config.GetConfig().Host
 
 	resource := r.URL.Query().Get("resource")
@@ -43,7 +43,7 @@ func WebfingerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, ok := GameMap[req_name]
+	_, ok := server.games[req_name]
 	if !ok {
 		println("error: unknown game")
 		w.WriteHeader(http.StatusNotFound)

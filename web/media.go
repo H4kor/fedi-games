@@ -6,7 +6,7 @@ import (
 	"rerere.org/fedi-games/config"
 )
 
-func MediaServer() http.Handler {
+func (server *FediGamesServer) MediaServer() http.Handler {
 	cfg := config.GetConfig()
 	return http.FileServer(http.Dir(cfg.MediaPath))
 }

@@ -7,10 +7,10 @@ import (
 	"rerere.org/fedi-games/games"
 )
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
+func (server *FediGamesServer) IndexHandler(w http.ResponseWriter, r *http.Request) {
 	slog.Info("Serving Index")
 	games := make([]games.Game, 0)
-	for _, g := range GameMap {
+	for _, g := range server.games {
 		games = append(games, g)
 	}
 	err := RenderTemplateWithBase(w, "index", games)

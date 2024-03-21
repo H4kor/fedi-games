@@ -1,6 +1,7 @@
 package web
 
 import (
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -24,13 +25,13 @@ func (server *FediGamesServer) WebfingerHandler(w http.ResponseWriter, r *http.R
 
 	resource := r.URL.Query().Get("resource")
 	if !strings.HasPrefix(resource, "acct:") {
-		println("error: must start with acct:")
+		slog.Error("resource must start with acct:", "resource", resource)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 	parts := strings.Split(resource[5:], "@")
 	if len(parts) != 2 {
-		println("error: must have @")
+		slog.Error("resource must have @", "resource", resource)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -38,14 +39,14 @@ func (server *FediGamesServer) WebfingerHandler(w http.ResponseWriter, r *http.R
 	req_host := parts[1]
 
 	if req_host != host {
-		println("error: not host")
+		slog.Error("not host", "req_host", req_host, "host", host)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	_, ok := server.games[req_name]
 	if !ok {
-		println("error: unknown game")
+		slog.Error("unknown game", "req_name", req_name)
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}

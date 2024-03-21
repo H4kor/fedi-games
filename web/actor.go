@@ -42,7 +42,7 @@ func (server *FediGamesServer) GameHandler(w http.ResponseWriter, r *http.Reques
 
 	cfg := config.GetConfig()
 
-	actor := vocab.ServiceNew(vocab.IRI(cfg.FullUrl() + "/games/" + game.Name()))
+	actor := vocab.ServiceNew(gameUrl(game))
 	actor.PreferredUsername = vocab.NaturalLanguageValues{{Value: vocab.Content(game.Name())}}
 	actor.Inbox = vocab.IRI(cfg.FullUrl() + "/games/" + game.Name() + "/inbox")
 	actor.Following = vocab.IRI(cfg.FullUrl() + "/games/" + game.Name() + "/following")
@@ -50,7 +50,7 @@ func (server *FediGamesServer) GameHandler(w http.ResponseWriter, r *http.Reques
 	// actor.Followers = vocab.IRI(config.FullUrl() + "/games/" + game + "/followers")
 	actor.PublicKey = vocab.PublicKey{
 		ID:           vocab.ID(cfg.FullUrl() + "/games/" + game.Name() + "#main-key"),
-		Owner:        vocab.IRI(cfg.FullUrl() + "/games/" + game.Name()),
+		Owner:        gameUrl(game),
 		PublicKeyPem: cfg.PublicKeyPem,
 	}
 

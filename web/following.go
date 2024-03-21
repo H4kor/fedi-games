@@ -5,19 +5,25 @@ import (
 
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
+	"rerere.org/fedi-games/config"
 )
 
 func (server *FediGamesServer) FollowingHandler(w http.ResponseWriter, r *http.Request) {
 	gameName := r.PathValue("game")
-
-	_, ok := server.games[gameName]
+	game, ok := server.games[gameName]
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+	cfg := config.GetConfig()
 
 	following := vocab.Collection{}
 
+	for _, g := range server.games {
+		following.Append(gameUrl(g))
+	}
+	following.TotalItems = uint(len(server.games))
+	following.ID = vocab.IRI(cfg.FullUrl() + "/games/" + game.Name() + "/following")
 	data, _ := jsonld.WithContext(
 		jsonld.IRI(vocab.ActivityBaseURI),
 	).Marshal(following)

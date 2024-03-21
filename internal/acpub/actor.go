@@ -3,6 +3,8 @@ package acpub
 import (
 	"bytes"
 	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"io"
 	"log/slog"
 	"net/http"
@@ -66,6 +68,30 @@ func sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Requ
 
 	slog.Info("Signed Request", "req", r.Header)
 	return err
+}
+
+func VerifySignature(r *http.Request, sender string) error {
+	actor, err := GetActor(sender)
+	// actor does not have a pub key -> don't verify
+	if actor.PublicKey.PublicKeyPem == "" {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+	block, _ := pem.Decode([]byte(actor.PublicKey.PublicKeyPem))
+	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return err
+	}
+	slog.Info("retrieved pub key of sender", "actor", actor, "pubKey", pubKey)
+
+	verifier, err := httpsig.NewVerifier(r)
+	if err != nil {
+		return err
+	}
+	return verifier.Verify(pubKey, httpsig.RSA_SHA256)
 }
 
 func SendNote(fromGame string, note vocab.Note) error {

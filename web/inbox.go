@@ -12,6 +12,7 @@ import (
 	"rerere.org/fedi-games/domain/models"
 	"rerere.org/fedi-games/games"
 	"rerere.org/fedi-games/infra"
+	"rerere.org/fedi-games/internal/acpub"
 	"rerere.org/fedi-games/internal/html"
 )
 
@@ -48,6 +49,13 @@ func (server *FediGamesServer) InboxHandler(w http.ResponseWriter, r *http.Reque
 			plain := html.GetTextFromHtml(o.Content.String())
 			recipients := o.Recipients()
 			sender := o.AttributedTo.GetLink().String()
+
+			err := acpub.VerifySignature(r, sender)
+			if err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return err
+			}
+
 			participants := []string{}
 			for _, r := range recipients {
 				// filter out all actors on this server fromt the participants list

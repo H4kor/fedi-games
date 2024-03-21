@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/H4kor/fedi-games/config"
+	"github.com/H4kor/fedi-games/domain/models"
+	"github.com/H4kor/fedi-games/games"
+	"github.com/H4kor/fedi-games/infra"
+	"github.com/H4kor/fedi-games/internal/acpub"
 	vocab "github.com/go-ap/activitypub"
-	"rerere.org/fedi-games/config"
-	"rerere.org/fedi-games/domain/models"
-	"rerere.org/fedi-games/games"
-	"rerere.org/fedi-games/infra"
-	"rerere.org/fedi-games/internal/acpub"
 )
 
 type GameStep struct {

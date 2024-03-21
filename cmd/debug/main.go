@@ -1,6 +1,6 @@
 package main
 
-import "rerere.org/fedi-games/games/bunkers"
+import "github.com/H4kor/fedi-games/games/bunkers"
 
 func main() {
 	state := bunkers.NewBunkersGameState("a", "b")

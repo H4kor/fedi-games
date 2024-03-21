@@ -24,7 +24,7 @@ For development an [air](https://github.com/cosmtrek/air) configurations is prov
 Otherwise use:
 
 ```
-go run rerere.org/fedi-games/cmd
+go run github.com/H4kor/fedi-games/cmd
 ```
 
 The server will run on [http://localhost:4040](http://localhost:4040). 

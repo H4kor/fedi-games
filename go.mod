@@ -1,4 +1,4 @@
-module rerere.org/fedi-games
+module github.com/H4kor/fedi-games
 
 go 1.22.0
 

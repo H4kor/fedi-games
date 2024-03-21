@@ -5,7 +5,7 @@ import (
 	"image"
 	"image/png"
 
-	"rerere.org/fedi-games/internal"
+	"github.com/H4kor/fedi-games/internal"
 )
 
 // Render the state into a png file and save it as as media files

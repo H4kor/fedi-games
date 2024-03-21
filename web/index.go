@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"rerere.org/fedi-games/games"
+	"github.com/H4kor/fedi-games/games"
 )
 
 func (server *FediGamesServer) IndexHandler(w http.ResponseWriter, r *http.Request) {

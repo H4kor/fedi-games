@@ -11,10 +11,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/H4kor/fedi-games/config"
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
 	"github.com/go-fed/httpsig"
-	"rerere.org/fedi-games/config"
 )
 
 func ActorToLink(act vocab.Actor) string {

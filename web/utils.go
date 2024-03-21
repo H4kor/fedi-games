@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/H4kor/fedi-games/config"
+	"github.com/H4kor/fedi-games/games"
 	vocab "github.com/go-ap/activitypub"
-	"rerere.org/fedi-games/config"
-	"rerere.org/fedi-games/games"
 )
 
 func writeJson(w http.ResponseWriter, data interface{}) error {

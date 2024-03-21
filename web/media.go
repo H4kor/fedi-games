@@ -3,7 +3,7 @@ package web
 import (
 	"net/http"
 
-	"rerere.org/fedi-games/config"
+	"github.com/H4kor/fedi-games/config"
 )
 
 func (server *FediGamesServer) MediaServer() http.Handler {

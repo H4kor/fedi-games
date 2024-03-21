@@ -15,7 +15,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux go build -o ./out/fedi-games rerere.org/fedi-games/cmd
+RUN CGO_ENABLED=1 GOOS=linux go build -o ./out/fedi-games github.com/H4kor/fedi-games/cmd
 
 
 ##

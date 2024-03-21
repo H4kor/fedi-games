@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"rerere.org/fedi-games/domain/models"
-	"rerere.org/fedi-games/games"
-	"rerere.org/fedi-games/internal/acpub"
+	"github.com/H4kor/fedi-games/domain/models"
+	"github.com/H4kor/fedi-games/games"
+	"github.com/H4kor/fedi-games/internal/acpub"
 )
 
 func NewBunkerGame() games.Game {

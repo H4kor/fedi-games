@@ -3,9 +3,9 @@ package web
 import (
 	"net/http"
 
+	"github.com/H4kor/fedi-games/config"
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
-	"rerere.org/fedi-games/config"
 )
 
 func (server *FediGamesServer) FollowingHandler(w http.ResponseWriter, r *http.Request) {

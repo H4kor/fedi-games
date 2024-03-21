@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"log/slog"
 
+	"github.com/H4kor/fedi-games/config"
+	"github.com/H4kor/fedi-games/domain/models"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
-	"rerere.org/fedi-games/config"
-	"rerere.org/fedi-games/domain/models"
 )
 
 type sqlGameSession struct {

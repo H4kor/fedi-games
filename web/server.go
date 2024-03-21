@@ -3,8 +3,8 @@ package web
 import (
 	"net/http"
 
-	"rerere.org/fedi-games/games"
-	"rerere.org/fedi-games/internal"
+	"github.com/H4kor/fedi-games/games"
+	"github.com/H4kor/fedi-games/internal"
 )
 
 type FediGamesServer struct {

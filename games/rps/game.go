@@ -4,8 +4,8 @@ import (
 	"math/rand"
 	"strings"
 
-	"rerere.org/fedi-games/domain/models"
-	"rerere.org/fedi-games/games"
+	"github.com/H4kor/fedi-games/domain/models"
+	"github.com/H4kor/fedi-games/games"
 )
 
 type RockPaperScissor struct{}

@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/H4kor/fedi-games/config"
+	"github.com/H4kor/fedi-games/games"
 	vocab "github.com/go-ap/activitypub"
 	"github.com/go-ap/jsonld"
-	"rerere.org/fedi-games/config"
-	"rerere.org/fedi-games/games"
 )
 
 type htmlData struct {

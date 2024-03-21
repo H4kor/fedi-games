@@ -1,12 +1,12 @@
 package main
 
 import (
-	"rerere.org/fedi-games/games"
-	"rerere.org/fedi-games/games/bunkers"
-	"rerere.org/fedi-games/games/rps"
-	tictactoe "rerere.org/fedi-games/games/tic-tac-toe"
-	"rerere.org/fedi-games/internal"
-	"rerere.org/fedi-games/web"
+	"github.com/H4kor/fedi-games/games"
+	"github.com/H4kor/fedi-games/games/bunkers"
+	"github.com/H4kor/fedi-games/games/rps"
+	tictactoe "github.com/H4kor/fedi-games/games/tic-tac-toe"
+	"github.com/H4kor/fedi-games/internal"
+	"github.com/H4kor/fedi-games/web"
 )
 
 func main() {

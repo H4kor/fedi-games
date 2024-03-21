@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"rerere.org/fedi-games/config"
+	"github.com/H4kor/fedi-games/config"
 )
 
 type WebfingerResponse struct {

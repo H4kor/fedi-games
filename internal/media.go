@@ -5,8 +5,8 @@ import (
 	"os"
 	"path"
 
+	"github.com/H4kor/fedi-games/config"
 	"github.com/google/uuid"
-	"rerere.org/fedi-games/config"
 )
 
 // StoreMedia stores a file and makes it publically available via the media route

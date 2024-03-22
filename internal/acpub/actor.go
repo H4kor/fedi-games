@@ -120,11 +120,18 @@ func SendNote(fromGame string, note vocab.Note) error {
 		).Marshal(create)
 		if err != nil {
 			slog.Error("marshalling error", "err", err)
+			return err
+		}
+
+		if actor.Inbox == nil {
+			slog.Error("actor has no inbox", "actor", actor)
+			return err
 		}
 
 		actorUrl, err := url.Parse(actor.Inbox.GetID().String())
 		if err != nil {
 			slog.Error("parse error", "err", err)
+			return err
 		}
 
 		c := http.Client{}
@@ -135,6 +142,7 @@ func SendNote(fromGame string, note vocab.Note) error {
 		err = sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", data, req)
 		if err != nil {
 			slog.Error("Signing error", "err", err)
+			return err
 		}
 		resp, err := c.Do(req)
 
@@ -142,11 +150,13 @@ func SendNote(fromGame string, note vocab.Note) error {
 
 		if err != nil {
 			slog.Error("Sending error", "err", err)
+			return err
 		}
 
 		if resp.StatusCode > 299 {
 			body, _ := io.ReadAll(resp.Body)
 			slog.Error("Error sending Note", "status", resp.Status, "body", string(body))
+			return err
 		}
 		body, _ := io.ReadAll(resp.Body)
 		slog.Info("Sent Body", "body", string(data))

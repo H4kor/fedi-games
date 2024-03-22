@@ -50,7 +50,7 @@ func (server *FediGamesServer) InboxHandler(w http.ResponseWriter, r *http.Reque
 			recipients := o.Recipients()
 			sender := o.AttributedTo.GetLink().String()
 
-			err := acpub.VerifySignature(r, sender)
+			err := acpub.VerifySignature(r, sender, gameName)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				return err

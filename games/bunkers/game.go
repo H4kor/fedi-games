@@ -237,8 +237,8 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 		}
 	}
 
-	actorA, _ := acpub.GetActor(state.PlayerA)
-	actorB, _ := acpub.GetActor(state.PlayerB)
+	actorA, _ := acpub.GetActor(state.PlayerA, t.Name())
+	actorB, _ := acpub.GetActor(state.PlayerB, t.Name())
 
 	// not all info given
 	if !(angleFound && velFound) {

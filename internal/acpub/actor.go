@@ -22,10 +22,26 @@ func ActorToLink(act vocab.Actor) string {
 	return "<a href=\"" + act.GetLink().String() + "\" class=\"u-url mention\">@" + act.PreferredUsername.String() + "@" + url.Host + "</a>"
 }
 
-func GetActor(url string) (vocab.Actor, error) {
+func GetActor(reqUrl string, fromGame string) (vocab.Actor, error) {
 	c := http.Client{}
-	req, _ := http.NewRequest("GET", url, nil)
+
+	parsedUrl, err := url.Parse(reqUrl)
+	if err != nil {
+		slog.Error("parse error", "err", err)
+		return vocab.Actor{}, err
+	}
+
+	req, _ := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Set("Accept", "application/ld+json")
+	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
+	req.Header.Set("Host", parsedUrl.Host)
+
+	cfg := config.GetConfig()
+	err = sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", nil, req)
+	if err != nil {
+		slog.Error("Signing error", "err", err)
+		return vocab.Actor{}, err
+	}
 
 	resp, err := c.Do(req)
 	if err != nil {
@@ -56,7 +72,10 @@ func sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Requ
 	prefs := []httpsig.Algorithm{httpsig.RSA_SHA256}
 	digestAlgorithm := httpsig.DigestSha256
 	// The "Date" and "Digest" headers must already be set on r, as well as r.URL.
-	headersToSign := []string{httpsig.RequestTarget, "host", "date", "digest"}
+	headersToSign := []string{httpsig.RequestTarget, "host", "date"}
+	if body != nil {
+		headersToSign = append(headersToSign, "digest")
+	}
 	signer, _, err := httpsig.NewSigner(prefs, digestAlgorithm, headersToSign, httpsig.Signature, 0)
 	if err != nil {
 		return err
@@ -70,8 +89,8 @@ func sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Requ
 	return err
 }
 
-func VerifySignature(r *http.Request, sender string) error {
-	actor, err := GetActor(sender)
+func VerifySignature(r *http.Request, sender string, fromGame string) error {
+	actor, err := GetActor(sender, fromGame)
 	// actor does not have a pub key -> don't verify
 	if actor.PublicKey.PublicKeyPem == "" {
 		return nil
@@ -98,7 +117,7 @@ func SendNote(fromGame string, note vocab.Note) error {
 	cfg := config.GetConfig()
 
 	for _, to := range note.To {
-		actor, err := GetActor(to.GetID().String())
+		actor, err := GetActor(to.GetID().String(), fromGame)
 		if err != nil {
 			slog.Error("Unable to get actor", "err", err)
 			return err

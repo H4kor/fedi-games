@@ -141,8 +141,8 @@ func (t *TicTacToe) OnMsg(session *models.GameSession, msg games.GameMsg) (inter
 	// "print" state to reply
 	m := t.renderField(*state)
 	m += "<br>"
-	actorA, _ := acpub.GetActor(state.PlayerA)
-	actorB, _ := acpub.GetActor(state.PlayerB)
+	actorA, _ := acpub.GetActor(state.PlayerA, t.Name())
+	actorB, _ := acpub.GetActor(state.PlayerB, t.Name())
 	m += "🔵 " + acpub.ActorToLink(actorA) + "<br>"
 	m += "🟠 " + acpub.ActorToLink(actorB) + "<br>"
 

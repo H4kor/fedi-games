@@ -21,4 +21,8 @@ var (
 		color.RGBA{R: 255, G: 100, B: 0, A: 255},   // TRAIL
 		color.RGBA{R: 255, G: 255, B: 200, A: 255}, // EXPLOSION
 	}
+
+	EXPLOSION_RADIUS = 25
+	GRAVITY          = 10.0
+	WIND_FACTOR      = 0.5
 )

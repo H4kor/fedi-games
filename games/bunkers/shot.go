@@ -5,9 +5,6 @@ import (
 	"math"
 )
 
-var EXPLOSION_RADIUS = 20
-var GRAVITY = 10.0
-
 type Shot struct {
 	StartX int
 	StartY int

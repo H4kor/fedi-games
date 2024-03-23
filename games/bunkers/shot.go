@@ -60,9 +60,9 @@ func (s *Shot) getImpact(terrain Terrain) ([]point, bool) {
 	return trail, true
 }
 
-func (s *Shot) Draw(state BunkersGameState, canvas *image.Paletted) {
+func (s *Shot) Draw(state BunkersGameState, canvas *image.Paletted, step int) {
 
-	trail, hit_terrain := s.getImpact(state.Terrain())
+	trail, hit_terrain := s.getImpact(state.TerrainAtShot(step - 1))
 
 	for _, p := range trail {
 		canvas.Set(p.X, canvas.Rect.Max.Y-p.Y, PALETTE[TRAIL])

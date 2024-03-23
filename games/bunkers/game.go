@@ -100,9 +100,16 @@ func NewBunkersGameState(a string, b string) *BunkersGameState {
 }
 
 func (s *BunkersGameState) Terrain() Terrain {
+	return s.TerrainAtShot(len(s.Shots))
+}
+
+// get terrain at a given stepp
+// step 0 = before any short
+// step n = after shot n is applied
+func (s *BunkersGameState) TerrainAtShot(step int) Terrain {
 	t := s.InitTerrain.Copy()
-	if len(s.Shots) > 1 {
-		for _, shot := range s.Shots[:len(s.Shots)-1] {
+	if step > 0 {
+		for _, shot := range s.Shots[:step] {
 			t = shot.DestroyTerrain(t)
 		}
 	}
@@ -313,13 +320,18 @@ func (t *BunkersGame) OnMsg(session *models.GameSession, msg games.GameMsg) (int
 		m += " 🎉🎉🎉"
 		state.Ended = true
 
+		anim, err := RenderAnimation(*state)
+		if err != nil {
+			return state, games.GameReply{}, err
+		}
+
 		return state, games.GameReply{
 			To:  []string{state.PlayerA, state.PlayerB},
 			Msg: m,
 			Attachments: []games.GameAttachment{
 				{
-					Url:       img,
-					MediaType: "image/png",
+					Url:       anim,
+					MediaType: "image/gif",
 				},
 			},
 		}, nil

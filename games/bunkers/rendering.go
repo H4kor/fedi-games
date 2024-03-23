@@ -3,14 +3,17 @@ package bunkers
 import (
 	"bytes"
 	"image"
+	"image/gif"
 	"image/png"
 
 	"github.com/H4kor/fedi-games/internal"
 )
 
-// Render the state into a png file and save it as as media files
-// returns the full url of the file
-func Render(state BunkersGameState) (string, error) {
+// renderStep draws the map on the given step
+// step 0 = before any shot is fired
+// step 1 = after first shot, first shot is shown
+// ...
+func renderStep(state BunkersGameState, step int) (*image.Paletted, error) {
 	canvas := image.NewPaletted(
 		image.Rectangle{
 			Min: image.Point{X: 0, Y: 0},
@@ -19,14 +22,55 @@ func Render(state BunkersGameState) (string, error) {
 		PALETTE,
 	)
 
-	state.Terrain().Draw(canvas)
-	DrawBunker(state.Terrain(), state.PosA, uint(PLAYER_A), canvas)
-	DrawBunker(state.Terrain(), state.PosB, uint(PLAYER_B), canvas)
+	state.TerrainAtShot(step).Draw(canvas)
+	DrawBunker(state.TerrainAtShot(step), state.PosA, uint(PLAYER_A), canvas)
+	DrawBunker(state.TerrainAtShot(step), state.PosB, uint(PLAYER_B), canvas)
 
-	if len(state.Shots) != 0 {
-		state.Shots[len(state.Shots)-1].Draw(state, canvas)
+	if step != 0 {
+		state.Shots[step-1].Draw(state, canvas, step)
 	}
 
+	return canvas, nil
+}
+
+func RenderAnimation(state BunkersGameState) (string, error) {
+	images := make([]*image.Paletted, 0)
+	var delays []int
+	for i := 0; i < len(state.Shots); i++ {
+		img, err := renderStep(state, i)
+		if err != nil {
+			return "", err
+		}
+		images = append(images, img)
+		delays = append(delays, 200)
+	}
+
+	if len(delays) > 0 {
+		delays[len(delays)-1] = 1000
+	}
+
+	var buffer bytes.Buffer
+	err := gif.EncodeAll(
+		&buffer,
+		&gif.GIF{
+			Image: images,
+			Delay: delays,
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return internal.StoreMedia(buffer.Bytes(), "gif")
+}
+
+// Render the state into a png file and save it as as media files
+// returns the full url of the file
+func Render(state BunkersGameState) (string, error) {
+	canvas, err := renderStep(state, len(state.Shots))
+	if err != nil {
+		return "", err
+	}
 	var buffer bytes.Buffer
 
 	if err := png.Encode(&buffer, canvas); err != nil {

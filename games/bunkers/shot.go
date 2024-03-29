@@ -8,7 +8,7 @@ import (
 type Shot struct {
 	StartX int
 	StartY int
-	Wind   int
+	Wind   float64
 	Vel    float64
 	Angle  float64
 }

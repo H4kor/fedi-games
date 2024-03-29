@@ -36,7 +36,7 @@ func renderStep(state BunkersGameState, step int) (*image.Paletted, error) {
 func RenderAnimation(state BunkersGameState) (string, error) {
 	images := make([]*image.Paletted, 0)
 	var delays []int
-	for i := 0; i < len(state.Shots); i++ {
+	for i := 0; i <= len(state.Shots); i++ {
 		img, err := renderStep(state, i)
 		if err != nil {
 			return "", err

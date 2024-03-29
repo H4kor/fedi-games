@@ -130,7 +130,7 @@ func (s *BunkersGameState) Step(step BunkersGameStep) BunkersGameResult {
 		StartY: s.Terrain().At(startX) + 15,
 		Vel:    step.Vel,
 		Angle:  angle,
-		Wind:   s.Wind * WIND_FACTOR,
+		Wind:   float64(s.Wind) * WIND_FACTOR,
 	}
 
 	// check if shot hits a bunker

@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -113,9 +114,68 @@ func VerifySignature(r *http.Request, sender string, fromGame string) error {
 	return verifier.Verify(pubKey, httpsig.RSA_SHA256)
 }
 
-func SendNote(fromGame string, note vocab.Note) error {
-	cfg := config.GetConfig()
+func sendObject(to vocab.Actor, fromGame string, data []byte) error {
+	if to.Inbox == nil {
+		slog.Error("actor has no inbox", "actor", to)
+		return errors.New("actor has no inbox")
+	}
 
+	actorUrl, err := url.Parse(to.Inbox.GetID().String())
+	if err != nil {
+		slog.Error("parse error", "err", err)
+		return err
+	}
+
+	cfg := config.GetConfig()
+	c := http.Client{}
+	req, _ := http.NewRequest("POST", to.Inbox.GetID().String(), bytes.NewReader(data))
+	req.Header.Set("Accept", "application/ld+json")
+	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
+	req.Header.Set("Host", actorUrl.Host)
+	err = sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", data, req)
+	if err != nil {
+		slog.Error("Signing error", "err", err)
+		return err
+	}
+	resp, err := c.Do(req)
+	slog.Info("Request", "host", resp.Request.Header)
+
+	if err != nil {
+		slog.Error("Sending error", "err", err)
+		return err
+	}
+
+	if resp.StatusCode > 299 {
+		body, _ := io.ReadAll(resp.Body)
+		slog.Error("Error sending Note", "status", resp.Status, "body", string(body))
+		return err
+	}
+	body, _ := io.ReadAll(resp.Body)
+	slog.Info("Sent Body", "body", string(data))
+	slog.Info("Retrieved", "status", resp.Status, "body", string(body))
+	return nil
+}
+
+func Accept(fromGame string, act *vocab.Activity) error {
+	actor, err := GetActor(act.Actor.GetID().String(), fromGame)
+	if err != nil {
+		return err
+	}
+
+	accept := vocab.AcceptNew(vocab.IRI("TODO"), act)
+	data, err := jsonld.WithContext(
+		jsonld.IRI(vocab.ActivityBaseURI),
+	).Marshal(accept)
+
+	if err != nil {
+		slog.Error("marshalling error", "err", err)
+		return err
+	}
+
+	return sendObject(actor, fromGame, data)
+}
+
+func SendNote(fromGame string, note vocab.Note) error {
 	for _, to := range note.To {
 		actor, err := GetActor(to.GetID().String(), fromGame)
 		if err != nil {
@@ -142,44 +202,10 @@ func SendNote(fromGame string, note vocab.Note) error {
 			return err
 		}
 
-		if actor.Inbox == nil {
-			slog.Error("actor has no inbox", "actor", actor)
-			return err
-		}
-
-		actorUrl, err := url.Parse(actor.Inbox.GetID().String())
+		err = sendObject(actor, fromGame, data)
 		if err != nil {
-			slog.Error("parse error", "err", err)
 			return err
 		}
-
-		c := http.Client{}
-		req, _ := http.NewRequest("POST", actor.Inbox.GetID().String(), bytes.NewReader(data))
-		req.Header.Set("Accept", "application/ld+json")
-		req.Header.Set("Date", time.Now().Format(http.TimeFormat))
-		req.Header.Set("Host", actorUrl.Host)
-		err = sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", data, req)
-		if err != nil {
-			slog.Error("Signing error", "err", err)
-			return err
-		}
-		resp, err := c.Do(req)
-
-		slog.Info("Request", "host", resp.Request.Header)
-
-		if err != nil {
-			slog.Error("Sending error", "err", err)
-			return err
-		}
-
-		if resp.StatusCode > 299 {
-			body, _ := io.ReadAll(resp.Body)
-			slog.Error("Error sending Note", "status", resp.Status, "body", string(body))
-			return err
-		}
-		body, _ := io.ReadAll(resp.Body)
-		slog.Info("Sent Body", "body", string(data))
-		slog.Info("Retrieved", "status", resp.Status, "body", string(body))
 	}
 	return nil
 

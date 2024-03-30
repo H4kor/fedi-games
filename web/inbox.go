@@ -16,6 +16,35 @@ import (
 	vocab "github.com/go-ap/activitypub"
 )
 
+func (server *FediGamesServer) processFollow(r *http.Request, gameName string, act *vocab.Activity) error {
+	follower := act.Actor.GetID().String()
+	err := acpub.VerifySignature(r, follower, gameName)
+	if err != nil {
+		return err
+	}
+	err = infra.GetDb().AddFollower(gameName, follower)
+	if err != nil {
+		return err
+	}
+
+	go acpub.Accept(gameName, act)
+
+	return nil
+}
+
+func (server *FediGamesServer) processUndo(r *http.Request, gameName string, act *vocab.Activity) error {
+	follower := act.Actor.GetID().String()
+	err := acpub.VerifySignature(r, follower, gameName)
+	if err != nil {
+		return err
+	}
+	err = infra.GetDb().RemoveFollower(gameName, follower)
+	if err != nil {
+		slog.Error("error on remove follower", "err", err)
+	}
+	return err
+}
+
 // ServeHTTP implements http.Handler.
 func (server *FediGamesServer) InboxHandler(w http.ResponseWriter, r *http.Request) {
 	gameName := r.PathValue("game")
@@ -39,7 +68,17 @@ func (server *FediGamesServer) InboxHandler(w http.ResponseWriter, r *http.Reque
 	slog.Info("Data retrieved", "data", data)
 
 	err = vocab.OnActivity(data, func(act *vocab.Activity) error {
-		slog.Info("activity retrieved", "activity", act)
+		slog.Info("activity retrieved", "activity", act, "type", act.Type)
+
+		if act.Type == vocab.FollowType {
+			return server.processFollow(r, gameName, act)
+		}
+
+		if act.Type == vocab.UndoType {
+			slog.Info("processing undo")
+			return server.processUndo(r, gameName, act)
+		}
+
 		if act.Type != "Create" {
 			return errors.New("only create activities are supported")
 		}

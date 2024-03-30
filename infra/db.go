@@ -53,6 +53,15 @@ func NewDatabase() *Database {
 		);
 	`)
 
+	sqlxdb.MustExec(`
+		CREATE TABLE IF NOT EXISTS followers (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			follower TEXT NOT NULL,
+			game_name TEXT NOT NULL,
+			UNIQUE(follower, game_name) ON CONFLICT IGNORE
+		)
+	`)
+
 	return &Database{
 		db: sqlxdb,
 	}
@@ -119,4 +128,25 @@ func (db *Database) PersistGameSession(sess *models.GameSession) error {
 		}
 	}
 	return nil
+}
+
+func (db *Database) AddFollower(gameName string, follower string) error {
+	_, err := db.db.Exec("INSERT INTO followers (game_name, follower) VALUES (?, ?)", gameName, follower)
+	return err
+}
+
+func (db *Database) RemoveFollower(gameName string, follower string) error {
+	_, err := db.db.Exec("DELETE FROM followers WHERE game_name = ? AND follower = ?", gameName, follower)
+	return err
+}
+
+func (db *Database) ListFollowers(gameName string) ([]string, error) {
+	slog.Info("Getting followers for", "gameName", gameName)
+	followers := []string{}
+	err := db.db.Select(&followers, "SELECT follower FROM followers WHERE game_name = ?", gameName)
+	if err != nil {
+		return []string{}, err
+	}
+
+	return followers, err
 }

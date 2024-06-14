@@ -24,6 +24,7 @@ type GameAttachment struct {
 }
 
 type GameReply struct {
+	Id          string
 	To          []string
 	Msg         string
 	Attachments []GameAttachment

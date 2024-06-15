@@ -38,7 +38,7 @@ func GetActor(reqUrl string, fromGame string) (vocab.Actor, error) {
 	req.Header.Set("Host", parsedUrl.Host)
 
 	cfg := config.GetConfig()
-	err = sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", nil, req)
+	err = Sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", nil, req)
 	if err != nil {
 		slog.Error("Signing error", "err", err)
 		return vocab.Actor{}, err
@@ -69,7 +69,7 @@ func GetActor(reqUrl string, fromGame string) (vocab.Actor, error) {
 	return actor, err
 }
 
-func sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Request) error {
+func Sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Request) error {
 	prefs := []httpsig.Algorithm{httpsig.RSA_SHA256}
 	digestAlgorithm := httpsig.DigestSha256
 	// The "Date" and "Digest" headers must already be set on r, as well as r.URL.
@@ -93,17 +93,20 @@ func sign(privateKey *rsa.PrivateKey, pubKeyId string, body []byte, r *http.Requ
 func VerifySignature(r *http.Request, sender string, fromGame string) error {
 	actor, err := GetActor(sender, fromGame)
 	// actor does not have a pub key -> don't verify
+	if err != nil {
+		return err
+	}
 	if actor.PublicKey.PublicKeyPem == "" {
 		return nil
 	}
 
-	if err != nil {
-		return err
-	}
 	block, _ := pem.Decode([]byte(actor.PublicKey.PublicKeyPem))
 	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		return err
+		pubKey, err = x509.ParsePKCS1PublicKey(block.Bytes)
+		if err != nil {
+			return err
+		}
 	}
 	slog.Info("retrieved pub key of sender", "actor", actor, "pubKey", pubKey)
 
@@ -132,7 +135,7 @@ func sendObject(to vocab.Actor, fromGame string, data []byte) error {
 	req.Header.Set("Accept", "application/ld+json")
 	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
 	req.Header.Set("Host", actorUrl.Host)
-	err = sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", data, req)
+	err = Sign(cfg.PrivKey, cfg.FullUrl()+"/games/"+fromGame+"#main-key", data, req)
 	if err != nil {
 		slog.Error("Signing error", "err", err)
 		return err

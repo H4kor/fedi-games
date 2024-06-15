@@ -23,7 +23,8 @@ func NewFediGamesServer(engine *internal.GameEngine, gamesList []games.Game) Fed
 	}
 }
 
-func (server *FediGamesServer) Start() error {
+func (server *FediGamesServer) Start() *http.Server {
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /.well-known/webfinger", server.WebfingerHandler)
 	mux.HandleFunc("GET /games/{game}", server.GameHandler)
@@ -36,6 +37,6 @@ func (server *FediGamesServer) Start() error {
 	mux.Handle("GET /media/", http.StripPrefix("/media", server.MediaServer()))
 	mux.HandleFunc("GET /{$}", server.IndexHandler)
 
-	println("Starting server on port 4040")
-	return http.ListenAndServe(":4040", mux)
+	srv := &http.Server{Addr: ":4040", Handler: mux}
+	return srv
 }

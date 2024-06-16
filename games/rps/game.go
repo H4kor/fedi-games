@@ -43,7 +43,7 @@ func (r *RockPaperScissor) OnMsg(sess *models.GameSession, msg games.GameMsg) (i
 	}
 
 	if selection == "" {
-		return sess, games.GameReply{
+		return sess.Data, games.GameReply{
 			To:  []string{msg.From},
 			Msg: "Your message must contain 'rock', 'paper' or 'scissors'.",
 		}, nil
@@ -108,7 +108,7 @@ func (r *RockPaperScissor) OnMsg(sess *models.GameSession, msg games.GameMsg) (i
 		m += "I WIN! 😈"
 	}
 
-	return sess, games.GameReply{
+	return sess.Data, games.GameReply{
 		To:  []string{msg.From},
 		Msg: m,
 	}, nil
@@ -116,7 +116,7 @@ func (r *RockPaperScissor) OnMsg(sess *models.GameSession, msg games.GameMsg) (i
 
 // Summary implements games.Game.
 func (r *RockPaperScissor) Summary() string {
-	return "Just 'Pock Paper Scissors!'. Write me your choice to start a game.<br>I promise I won't cheat."
+	return "Just 'Rock Paper Scissors!'. Write me your choice to start a game.<br>I promise I won't cheat."
 }
 
 // Example implements games.Game.

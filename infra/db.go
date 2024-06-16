@@ -2,10 +2,13 @@ package infra
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 
 	"github.com/H4kor/fedi-games/config"
 	"github.com/H4kor/fedi-games/domain/models"
+	"github.com/H4kor/fedi-games/games"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -21,6 +24,19 @@ type sqlGameMessage struct {
 	SessionId int64  `db:"session_id"`
 }
 
+type sqlGameAttachment struct {
+	Url       string
+	MediaType string
+}
+
+type sqlGameReply struct {
+	Id          string `db:"id"`
+	GameName    string `db:"game_name"`
+	To          string `db:"tos"`
+	Msg         string `db:"msg"`
+	Attachments string `db:"attachments"`
+}
+
 type Database struct {
 	db *sqlx.DB
 }
@@ -29,13 +45,13 @@ var db *Database
 
 func GetDb() *Database {
 	if db == nil {
-		db = NewDatabase()
+		db = NewDatabase(config.GetConfig().DatabaseUrl)
 	}
 	return db
 }
 
-func NewDatabase() *Database {
-	sqlxdb := sqlx.MustOpen("sqlite3", config.GetConfig().DatabaseUrl)
+func NewDatabase(url string) *Database {
+	sqlxdb := sqlx.MustOpen("sqlite3", url)
 
 	sqlxdb.MustExec(`
 		CREATE TABLE IF NOT EXISTS game_session (
@@ -59,6 +75,16 @@ func NewDatabase() *Database {
 			follower TEXT NOT NULL,
 			game_name TEXT NOT NULL,
 			UNIQUE(follower, game_name) ON CONFLICT IGNORE
+		)
+	`)
+
+	sqlxdb.MustExec(`
+		CREATE TABLE IF NOT EXISTS game_sent_messages (
+			id TEXT PRIMARY KEY,
+			game_name TEXT NOT NULL,
+			tos TEXT NOT NULL,
+			msg TEXT NOT NULL,
+			attachments TEXT NOT NULL
 		)
 	`)
 
@@ -149,4 +175,56 @@ func (db *Database) ListFollowers(gameName string) ([]string, error) {
 	}
 
 	return followers, err
+}
+
+func (db *Database) PersistGameReply(gameName string, reply *games.GameReply) error {
+	if reply.Id == "" {
+		id, _ := uuid.NewRandom()
+		reply.Id = id.String()
+		tos, _ := json.Marshal(reply.To)
+		sqlAtt := make([]sqlGameAttachment, 0, len(reply.Attachments))
+		for _, a := range reply.Attachments {
+			sqlAtt = append(sqlAtt, sqlGameAttachment{
+				Url:       a.Url,
+				MediaType: a.MediaType,
+			})
+		}
+		attachments, _ := json.Marshal(sqlAtt)
+
+		_, err := db.db.Exec(`INSERT INTO game_sent_messages (id, game_name, tos, msg, attachments) VALUES (?, ?, ?, ?, ?)`,
+			id, gameName, tos, reply.Msg, attachments,
+		)
+		return err
+	} else {
+		return errors.New("reply already has an id, will not be persisted")
+	}
+}
+
+func (db *Database) RetrieveGameReply(gameName string, id string) (*games.GameReply, error) {
+	slog.Info("Getting followers for", "gameName", gameName)
+	sqlReply := sqlGameReply{}
+	err := db.db.Get(&sqlReply, "SELECT * FROM game_sent_messages WHERE game_name = ? AND id = ?", gameName, id)
+	if err != nil {
+		return &games.GameReply{}, err
+	}
+	attachments := make([]games.GameAttachment, 0, len(sqlReply.Attachments))
+	aa := []sqlGameAttachment{}
+	json.Unmarshal([]byte(sqlReply.Attachments), &aa)
+	for _, a := range aa {
+		attachments = append(attachments, games.GameAttachment{
+			Url:       a.Url,
+			MediaType: a.MediaType,
+		})
+	}
+	to := []string{}
+	json.Unmarshal([]byte(sqlReply.To), &to)
+
+	reply := games.GameReply{
+		Id:          sqlReply.Id,
+		To:          to,
+		Msg:         sqlReply.Msg,
+		Attachments: attachments,
+	}
+
+	return &reply, err
 }

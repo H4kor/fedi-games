@@ -136,6 +136,10 @@ func (s *MockApServer) KeyId(name string) string {
 	return "http://localhost:" + s.Port + "/actors/" + name + "#main-key"
 }
 
+func (s *MockApServer) ActorUrl(name string) string {
+	return "http://localhost:" + s.Port + "/actors/" + name
+}
+
 func (s *MockApServer) SignedRequest(actorId string, method string, path string, body []byte) (*http.Request, error) {
 	req := httptest.NewRequest(
 		method, path, bytes.NewBuffer(body),

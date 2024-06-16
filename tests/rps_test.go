@@ -1,9 +1,7 @@
 package tests
 
 import (
-	"bytes"
 	"context"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -52,14 +50,8 @@ func TestRpsGame(t *testing.T) {
 
 		mock := NewMockAPServer()
 		// test
-		body := newNote("one", []string{"http://localhost:4040/games/rps"}, "1", "", test.give.msg)
-		req := httptest.NewRequest(
-			"POST", "/games/rps/inbox",
-			bytes.NewBuffer(body),
-		)
-		req.Header.Set("Date", time.Now().Format(http.TimeFormat))
-		req.Header.Set("Host", "localhost:7777")
-		err := Sign(mock.PrivateKey, "http://localhost:7777/actors/1#main-key", body, req)
+		body := mock.NewNote("one", []string{"http://localhost:4040/games/rps"}, "1", "", test.give.msg)
+		req, err := mock.SignedRequest("one", "POST", "/games/rps/inbox", body)
 		require.NoError(t, err)
 		resp := httptest.NewRecorder()
 		srv.Handler.ServeHTTP(resp, req)

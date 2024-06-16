@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -10,7 +11,9 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"strings"
+	"time"
 
 	"github.com/H4kor/fedi-games/web"
 	vocab "github.com/go-ap/activitypub"
@@ -23,10 +26,13 @@ type MockApServer struct {
 	// first map actor id
 	// list of parsed json data
 	Retrieved map[string][]map[string]interface{}
+	Port      string
 }
 
 // / Mock server implementation for testing activity pub
 func NewMockAPServer() MockApServer {
+	port := "7777"
+
 	privKey, _ := rsa.GenerateKey(rand.Reader, 2048)
 	pubKey := privKey.Public().(*rsa.PublicKey)
 	retrieved := make(map[string][]map[string]interface{})
@@ -50,7 +56,7 @@ func NewMockAPServer() MockApServer {
 				{
 					Rel:  "self",
 					Type: "application/activity+json",
-					Href: "http://localhost:7777/actors/" + req_name,
+					Href: "http://localhost:" + port + "/actors/" + req_name,
 				},
 			},
 		}
@@ -62,12 +68,12 @@ func NewMockAPServer() MockApServer {
 	})
 	mux.HandleFunc("GET /actors/{name}", func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("name")
-		actor := vocab.ServiceNew(vocab.IRI("http://localhost:7777/actors/" + name))
+		actor := vocab.ServiceNew(vocab.IRI("http://localhost:" + port + "/actors/" + name))
 		actor.PreferredUsername = vocab.NaturalLanguageValues{{Value: vocab.Content(name)}}
-		actor.Inbox = vocab.IRI("http://localhost:7777/actors/" + name + "/inbox")
+		actor.Inbox = vocab.IRI("http://localhost:" + port + "/actors/" + name + "/inbox")
 		actor.PublicKey = vocab.PublicKey{
-			ID:           vocab.ID("http://localhost:7777/actors/" + name + "#main-key"),
-			Owner:        vocab.IRI("http://localhost:7777/actors/" + name),
+			ID:           vocab.ID("http://localhost:" + port + "/actors/" + name + "#main-key"),
+			Owner:        vocab.IRI("http://localhost:" + port + "/actors/" + name),
 			PublicKeyPem: string(pubKeyPem),
 		}
 		actor.Name = vocab.NaturalLanguageValues{{Value: vocab.Content(name)}}
@@ -106,10 +112,10 @@ func NewMockAPServer() MockApServer {
 
 	})
 
-	srv := &http.Server{Addr: ":7777", Handler: mux}
+	srv := &http.Server{Addr: ":" + port, Handler: mux}
 	go func() {
 		// always returns error. ErrServerClosed on graceful close
-		println("Starting server on port 7777")
+		println("Starting server on port " + port)
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			// unexpected error. port in use?
 			log.Fatalf("ListenAndServe(): %v", err)
@@ -121,6 +127,57 @@ func NewMockAPServer() MockApServer {
 		Server:     srv,
 		PrivateKey: privKey,
 		Retrieved:  retrieved,
+		Port:       port,
 	}
+
+}
+
+func (s *MockApServer) KeyId(name string) string {
+	return "http://localhost:" + s.Port + "/actors/" + name + "#main-key"
+}
+
+func (s *MockApServer) SignedRequest(actorId string, method string, path string, body []byte) (*http.Request, error) {
+	req := httptest.NewRequest(
+		method, path, bytes.NewBuffer(body),
+	)
+	req.Header.Set("Date", time.Now().Format(http.TimeFormat))
+	req.Header.Set("Host", "localhost:"+s.Port)
+	err := Sign(s.PrivateKey, s.KeyId(actorId), body, req)
+	return req, err
+}
+
+func (s *MockApServer) NewNote(fromId string, toIds []string, noteId string, inReplyToId, msgStr string) []byte {
+	to := vocab.ItemCollection{}
+	mentions := vocab.ItemCollection{}
+	for _, t := range toIds {
+		to = append(to, vocab.ID(t))
+		mention := vocab.MentionNew(
+			vocab.ID(t),
+		)
+		mention.Href = vocab.ID(t)
+		mentions = append(mentions, mention)
+	}
+	note := vocab.Note{
+		ID:           vocab.ID("http://localhost:" + s.Port + "/notes/" + noteId),
+		Type:         "Note",
+		InReplyTo:    vocab.ID(inReplyToId),
+		To:           to,
+		Published:    time.Now().UTC(),
+		AttributedTo: vocab.ID("http://localhost:" + s.Port + "/actors/" + fromId),
+		Tag:          mentions,
+		Content: vocab.NaturalLanguageValues{
+			{Value: vocab.Content(msgStr)},
+		},
+	}
+
+	create := vocab.CreateNew(vocab.IRI(note.ID.String()+"/activity"), note)
+	create.Actor = note.AttributedTo
+	create.To = note.To
+	create.Published = note.Published
+	data, _ := jsonld.WithContext(
+		jsonld.IRI(vocab.ActivityBaseURI),
+	).Marshal(create)
+
+	return data
 
 }

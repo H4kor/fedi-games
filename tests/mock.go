@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
@@ -19,12 +20,16 @@ import (
 type MockApServer struct {
 	Server     *http.Server
 	PrivateKey *rsa.PrivateKey
+	// first map actor id
+	// list of parsed json data
+	Retrieved map[string][]map[string]interface{}
 }
 
 // / Mock server implementation for testing activity pub
 func NewMockAPServer() MockApServer {
 	privKey, _ := rsa.GenerateKey(rand.Reader, 2048)
 	pubKey := privKey.Public().(*rsa.PublicKey)
+	retrieved := make(map[string][]map[string]interface{})
 
 	pubKeyPem := pem.EncodeToMemory(
 		&pem.Block{
@@ -77,6 +82,29 @@ func NewMockAPServer() MockApServer {
 		w.Header().Add("Content-Type", "application/activity+json")
 		w.Write(data)
 	})
+	mux.HandleFunc("POST /actors/{name}/inbox", func(w http.ResponseWriter, r *http.Request) {
+		name := r.PathValue("name")
+		slog.Info("Inbox called", "name", name)
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			slog.Error("Couldn't read body in inbox")
+			w.WriteHeader(400)
+			w.Write([]byte("Couldn't read body in inbox"))
+			return
+		}
+		var data map[string]interface{}
+		err = json.Unmarshal(body, &data)
+		if err != nil {
+			slog.Error("Couldn't parse body in inbox")
+			w.WriteHeader(400)
+			w.Write([]byte("Couldn't parse body in inbox"))
+			return
+		}
+		retrieved[name] = append(retrieved[name], data)
+
+		w.Write([]byte(""))
+
+	})
 
 	srv := &http.Server{Addr: ":7777", Handler: mux}
 	go func() {
@@ -92,6 +120,7 @@ func NewMockAPServer() MockApServer {
 	return MockApServer{
 		Server:     srv,
 		PrivateKey: privKey,
+		Retrieved:  retrieved,
 	}
 
 }

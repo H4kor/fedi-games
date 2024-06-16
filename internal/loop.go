@@ -2,7 +2,6 @@ package internal
 
 import (
 	"log/slog"
-	"strings"
 
 	"github.com/H4kor/fedi-games/config"
 	"github.com/H4kor/fedi-games/domain/models"
@@ -97,11 +96,8 @@ func (engine *GameEngine) process(sess *models.GameSession, game games.Game, msg
 	}
 
 	// don't send notes to other services if in localhost mode
-	if !strings.Contains(cfg.FullUrl(), "localhost") {
-		err = acpub.SendNote(sess.GameName, note)
-		if err != nil {
-			slog.Error("Error sending message", "err", err)
-		}
+	err = acpub.SendNote(sess.GameName, note)
+	if err != nil {
+		slog.Error("Error sending message", "err", err)
 	}
-
 }
